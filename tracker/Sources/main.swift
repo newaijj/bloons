@@ -15,6 +15,7 @@
 //   ./tracker                 run with the overlay
 //   ./tracker --headless      console only
 //   ./tracker --log run.csv   also write a per-second CSV for tuning
+//   ./tracker --side left     force an orientation instead of detecting it
 
 import Foundation
 import AppKit
@@ -29,6 +30,10 @@ struct Options {
     /// Skip panel detection and force an orientation. Mainly for exercising the
     /// mirrored path, which no captured frame exhibits.
     var forcedSide: PlayerSide?
+    /// When to save frames for later study. `auto` saves only when the run is
+    /// one we have no captures of — see FrameDump.
+    var dump: FrameDump.Policy = .auto
+    var dumpMax = 20
 }
 
 func parseOptions() -> Options {
@@ -50,6 +55,15 @@ func parseOptions() -> Options {
                 exit(2)
             }
             o.forcedSide = s
+        case "--dump":
+            let v = it.next() ?? ""
+            guard let p = FrameDump.Policy(rawValue: v.lowercased()) else {
+                FileHandle.standardError.write("--dump takes auto, always, or off, got \"\(v)\"\n".data(using: .utf8)!)
+                exit(2)
+            }
+            o.dump = p
+        case "--dump-max":
+            o.dumpMax = Int(it.next() ?? "") ?? o.dumpMax
         default: FileHandle.standardError.write("unknown arg: \(a)\n".data(using: .utf8)!)
         }
     }
@@ -81,11 +95,48 @@ print("round table: \(roundData.loadedRounds) rounds from \(dataPath)")
 
 let hud = HUDReader()
 let detector = SendDetector(roundData: roundData, fps: opts.fps)
-let towers = TowerWatcher(fps: opts.fps)
+let towers = TowerWatcher(roundData: roundData, fps: opts.fps)
 let model = IncomeModel(roundData: roundData)
 let capture = WindowCapture()
 let sideDetector = SideDetector()
+/// One-shot notices: waiting for a match, and failing to decide once in one.
 var sideWarned = false
+var sideUndecidedWarned = false
+/// Last clipped-build count reported to the console, so the note prints on
+/// change rather than on every build after the first clip.
+var lastClippedSeen = 0
+
+/// Frames are written next to the binary, so a dump can be replayed straight
+/// back with `--replay tracker/out/<session>`.
+let frameDump = FrameDump(
+    policy: opts.dump,
+    maxFrames: opts.dumpMax,
+    baseDir: URL(fileURLWithPath: CommandLine.arguments[0])
+        .deletingLastPathComponent().appendingPathComponent("out", isDirectory: true))
+
+/// What the tracker believed about the layout, written beside a dump so the
+/// frames are interpretable without this session's console output.
+@Sendable func layoutNote() -> String {
+    func row(_ label: String, _ r: HUDRegion) -> String {
+        String(format: "  %-12s x %.4f–%.4f  y %.4f–%.4f", (label as NSString).utf8String!,
+               r.rect.minX, r.rect.maxX, r.rect.minY, r.rect.maxY)
+    }
+    return """
+    side          \(Regions.latched ? Regions.mySide.rawValue : "undecided")
+    top bar       \(Regions.topBarMirrors ? "mirrored" : "unchanged")
+    evidence      \(sideDetector.evidence)
+
+    resolved regions (normalised, top-left origin):
+    \(row("my_track", Regions.myTrack))
+    \(row("opp_track", Regions.oppTrack))
+    \(row("send_menu", Regions.sendMenu))
+    \(row("my_name", Regions.myName))
+    \(row("opp_name", Regions.oppName))
+    \(row("my_cash", Regions.myCash))
+    \(row("my_eco", Regions.myEco))
+    \(row("round", Regions.round))
+    """
+}
 
 var overlay: OverlayPanel?
 var logHandle: FileHandle?
@@ -94,10 +145,13 @@ if let lp = opts.logPath {
     logHandle = FileHandle(forWritingAtPath: lp)
     // Raw per-type track counts are included so the pixels-per-bloon constant
     // and the eco tick can be fitted from a real match afterwards.
-    // `side` is appended last so existing column indices stay put. It is empty
-    // until the side latches, so a row can never claim an orientation that was
-    // merely the default rather than a decision.
-    logHandle?.write("t,round,my_cash,my_eco,opp_eco,opp_eco_income,opp_send_spend,opp_tower_spend,opp_cash,opp_cash_ceiling,sends,tick_period,payout_ratio,trk_red,trk_blue,trk_green,trk_yellow,trk_pink,side\n".data(using: .utf8)!)
+    // New columns are appended, never inserted, so existing indices stay put.
+    // `side` is empty until the side latches, so a row can never claim an
+    // orientation that was merely the default rather than a decision.
+    // `opp_tower_raw` and `builds_clipped` expose the gap between what the tower
+    // detector claimed and what the affordability bound allowed — the pair is
+    // how you tune the detector against a real match.
+    logHandle?.write("t,round,my_cash,my_eco,opp_eco,opp_eco_income,opp_send_spend,opp_tower_spend,opp_cash,opp_cash_ceiling,sends,tick_period,payout_ratio,trk_red,trk_blue,trk_green,trk_yellow,trk_pink,side,opp_tower_raw,builds_clipped\n".data(using: .utf8)!)
 }
 
 // Shared state between the capture queue and the main thread.
@@ -123,6 +177,14 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     v >= 10000 ? String(format: "$%.1fk", v / 1000) : String(format: "$%.0f", v)
 }
 
+/// Keep the overlay off your own board: it sits in the bottom corner on the
+/// OPPONENT's half. Before the side latches this is the right-side default,
+/// which puts it bottom-left — and it relocates within a second of latching,
+/// since tick() re-applies it.
+@Sendable func overlayCorner() -> OverlayPanel.Corner {
+    Regions.mySide == .left ? .bottomRight : .bottomLeft
+}
+
 @Sendable func buildOverlayLines() -> [OverlayLine] {
     state.lock.lock(); defer { state.lock.unlock() }
     let b = model.books
@@ -131,6 +193,15 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 
     let opp = (snap.oppName?.isEmpty == false) ? snap.oppName! : "opponent"
     lines.append(OverlayLine(text: "\(opp.prefix(22))  ·  R\(snap.round.map(String.init) ?? "?")", style: .title))
+
+    // Which half is being read as theirs is the assumption everything else rests
+    // on, so it stays on screen rather than only in the startup log.
+    guard Regions.latched else {
+        lines.append(OverlayLine(text: "finding your side of the board…", style: .warn))
+        lines.append(OverlayLine(text: "looking for the shop and send panel", style: .dim))
+        return lines
+    }
+    lines.append(OverlayLine(text: "you: \(Regions.mySide.rawValue)  ·  them: \(Regions.mySide.opposite.rawValue)", style: .dim))
 
     guard model.isSeeded else {
         lines.append(OverlayLine(text: "waiting for round 1…", style: .dim))
@@ -148,6 +219,10 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     lines.append(OverlayLine(text: "into towers \(formatMoney(b.towerSpend))  (\(b.buildCount) builds)", style: .key))
     lines.append(OverlayLine(text: "if they'd built nothing: \(formatMoney(b.cashCeiling))", style: .dim))
     lines.append(OverlayLine(text: "tower cost is estimated from footprint", style: .dim))
+    // The bound firing is a statement about the detector, not about them.
+    if b.clippedBuilds > 0 {
+        lines.append(OverlayLine(text: "\(b.clippedBuilds) builds clipped to affordable — tower estimate is running hot", style: .warn))
+    }
 
     if !model.calibrator.calibrated {
         lines.append(OverlayLine(text: "calibrating eco tick (\(model.calibrator.ticksSeen)/3)…", style: .warn))
@@ -171,24 +246,24 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 }
 
 /// Commit to a side and re-point everything that reads a half of the screen.
-@Sendable func latchSide(_ side: PlayerSide, image cg: CGImage, evidence: String) {
-    // Whether the top bar mirrors along with the play area is settled by
-    // reading, not by assuming — nothing in the captures on hand answers it, and
-    // "ROUND n/40" is distinctive enough that only the correct position parses.
-    var topBarMirrors = false
-    if side == .left {
-        if let hit = Regions.roundCandidates.first(where: { hud.probeRound(cg, $0.region) != nil }) {
-            topBarMirrors = hit.topBarMirrors
-        } else {
-            print("  warning: round counter parsed at neither top-bar position — assuming the bar does not mirror")
-        }
-    }
-
+/// Commit to a side and re-point everything that reads a half of the screen.
+///
+/// `topBarMirrors` arrives from the match probe rather than being worked out
+/// here: establishing that a match is up already requires finding the round
+/// counter, and which of the two candidate positions it turned up in IS the
+/// answer. Deriving it there also means it is known for a right-side latch, not
+/// only when mirrored.
+@Sendable func latchSide(_ side: PlayerSide, image cg: CGImage, evidence: String,
+                         topBarMirrors: Bool, relatch: Bool = false) {
     state.lock.lock()
     Regions.adopt(side: side, topBarMirrors: topBarMirrors)
     detector.retarget()
     towers.retarget()
     hud.resetHistory()
+    // An overturned latch means everything booked so far was read off the wrong
+    // half of the screen. Their eco, their spend, the calibrated tick — all of
+    // it came from the wrong board, so none of it survives the correction.
+    if relatch { model.reset() }
     state.lock.unlock()
 
     func span(_ r: HUDRegion) -> String {
@@ -201,6 +276,22 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
       send panel   \(span(Regions.sendMenu))
       top bar      \(topBarMirrors ? "mirrored with the play area" : "unchanged")
     """)
+
+    // EVERY latch leaves pixels behind now, right-side included. The last wrong
+    // call produced a whole match of confident inverted output and not one frame
+    // to diagnose it with, because the dump only armed on outcomes already
+    // suspected of being wrong — which is precisely the set a false negative is
+    // not in. A short burst per match is cheap; losing the evidence is not.
+    if relatch {
+        frameDump.arm(reason: "side overturned after latch: now \(side.rawValue)", note: layoutNote())
+    } else if side == .left {
+        frameDump.arm(reason: "mirrored layout (side=left) — no captures of this exist",
+                      note: layoutNote())
+    } else {
+        frameDump.arm(reason: "routine latch (side=right)", note: layoutNote(),
+                      limit: 4, periodic: false)
+    }
+    if frameDump.armed, frameDump.shouldCapture() { frameDump.capture(cg) }
 }
 
 @Sendable func handleFrame(_ frame: Frame) {
@@ -212,6 +303,9 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     if n == 1 {
         detector.calibrate(frameWidth: frame.width)
         towers.calibrate(frameWidth: frame.width)
+        if frameDump.armsImmediately {
+            frameDump.arm(reason: "--dump always", note: layoutNote())
+        }
     }
 
     // Which half of the screen is ours is settled before a single pixel is
@@ -220,23 +314,62 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     // crediting the opponent with your own sends.
     if !Regions.latched {
         guard n % ocrEveryNFrames == 0, let cg = frame.makeCGImage() else { return }
+
+        // The side CANNOT be decided outside a match. A menu has its own chrome
+        // in the outer columns, and a run latched off it 43 seconds before the
+        // board came up — and got the side backwards. Menu evidence is not
+        // merely ignored, it is discarded, so none of it can survive into the
+        // window where the decision is actually made.
+        guard let m = hud.matchProbe(cg) else {
+            if sideDetector.frames > 0 { sideDetector.discardEvidence() }
+            if !sideWarned {
+                sideWarned = true
+                print("waiting for a match — side detection is held until the board is up")
+            }
+            return
+        }
+
         if let forced = opts.forcedSide {
-            latchSide(forced, image: cg, evidence: "forced by --side, panel detection skipped")
+            latchSide(forced, image: cg, evidence: "forced by --side, panel detection skipped",
+                      topBarMirrors: m.topBarMirrors)
             return
         }
         let probe = hud.panelHits(cg)
         if let side = sideDetector.observe(left: probe.left, right: probe.right) {
-            latchSide(side, image: cg, evidence: sideDetector.evidence)
-        } else if !sideWarned, sideDetector.timedOut(after: 20) {
-            sideWarned = true
+            latchSide(side, image: cg, evidence: sideDetector.evidence,
+                      topBarMirrors: m.topBarMirrors)
+        } else if !sideUndecidedWarned, sideDetector.timedOut(after: 20) {
+            sideUndecidedWarned = true
             print("""
-            still deciding which side you are on (\(sideDetector.evidence)).
-            Expected if you are in a menu or lobby — the shop and send panel are
-            not on screen there. Tracking starts once a match does.
+            20s into a match (round \(m.round)) and the side is still undecided
+            (\(sideDetector.evidence)). The panel column looks like nothing that
+            has been measured. Saving frames.
             """)
+            frameDump.arm(reason: "side undecided 20s into a live match", note: layoutNote())
         }
+        if frameDump.shouldCapture() { frameDump.capture(cg) }
         return
     }
+
+    // Latched — but keep checking. The panel signal has never been observed on
+    // a mirrored board, so the latch is treated as a hypothesis, not a fact.
+    if n % (ocrEveryNFrames * 5) == 0, let cg = frame.makeCGImage() {
+        let probe = hud.panelHits(cg)
+        if let corrected = sideDetector.verify(left: probe.left, right: probe.right) {
+            print("""
+
+            ⚠︎ SIDE CORRECTED: the panel has been on the \(corrected.rawValue) for four
+              consecutive checks, against a latched \(Regions.mySide.rawValue). Everything
+              booked so far was read off the wrong half and is being discarded.
+            """)
+            latchSide(corrected, image: cg,
+                      evidence: "overturned after latch — " + sideDetector.evidence,
+                      topBarMirrors: Regions.topBarMirrors, relatch: true)
+            return
+        }
+    }
+
+    if frameDump.shouldCapture(), let cg = frame.makeCGImage() { frameDump.capture(cg) }
 
     let counts = detector.scan(frame)
 
@@ -267,13 +400,22 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     detector.noteRound(round)
     detector.setAvailable(cards: current.sendCards)
     let events = detector.update(counts: counts, cards: current.sendCards)
-    let build = towers.update(frame, round: round)
-    model.noteTowerSpend(total: towers.totalSpend, builds: towers.buildCount)
+    let newBuilds = towers.update(frame, round: round)
+    // Books before builds: a build is charged against what they could afford at
+    // that instant, and this frame's income has to be in before that is right.
     model.update(snap: current, events: events)
+    for b in newBuilds { model.noteBuild(b) }
+    let clipped = model.books.clippedBuilds
     state.lock.unlock()
 
-    if let bd = build {
+    for bd in newBuilds {
         print("  build: ~\(formatMoney(Double(bd.estimatedCost))) @R\(bd.round) (\(bd.samples) samples)")
+    }
+    // Clipping means the detector claimed a purchase they could not have made,
+    // which is a detector problem — so it is surfaced rather than swallowed.
+    if !newBuilds.isEmpty, clipped > lastClippedSeen {
+        lastClippedSeen = clipped
+        print("  note: build cost clipped to what they could afford (\(clipped) so far)")
     }
 
     if !events.isEmpty {
@@ -296,7 +438,9 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     state.lock.unlock()
 
     if let o = overlay {
-        if gf != .zero { o.reposition(gameFrame: gf) }
+        // Re-applied every tick, so the panel moves itself the moment the side
+        // latches rather than needing to be told.
+        if gf != .zero { o.reposition(gameFrame: gf, corner: overlayCorner()) }
         o.render(buildOverlayLines())
     }
 
@@ -320,6 +464,8 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
             fields.append(String(counts[t] ?? 0))
         }
         fields.append(Regions.latched ? Regions.mySide.rawValue : "")
+        fields.append(String(format: "%.0f", b.towerSpendRaw))
+        fields.append(String(b.clippedBuilds))
         lh.write((fields.joined(separator: ",") + "\n").data(using: .utf8)!)
     }
 }
@@ -329,12 +475,21 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 // Push recorded PNGs through the live pipeline. Validates HUD parsing, send-card
 // reading, and the track scan without needing a match in progress. Send timing
 // is wall-clock in replay, so burst counts are indicative rather than exact.
+//
+// Builds will report zero here, and that is correct rather than broken: a build
+// has to survive a 3s settle window and a 3s persistence check against frames
+// that were captured seconds apart and are replayed in milliseconds. Replay
+// exercises parsing, not dynamics.
 
 func runReplay(_ dir: String) -> Never {
     let files = ((try? FileManager.default.contentsOfDirectory(atPath: dir)) ?? [])
         .filter { $0.hasSuffix(".png") && !$0.contains("annotated") }.sorted()
     guard !files.isEmpty else { print("no PNGs in \(dir)"); exit(1) }
     print("replaying \(files.count) frames from \(dir)\n")
+
+    // Frames arrive as fast as they decode, so the live detector's 3s settling
+    // window is meaningless here — decide on hit count alone.
+    let replaySide = SideDetector(minSeconds: 0)
 
     for (i, f) in files.enumerated() {
         let url = URL(fileURLWithPath: dir).appendingPathComponent(f)
@@ -347,14 +502,45 @@ func runReplay(_ dir: String) -> Never {
             detector.calibrate(frameWidth: frame.width)
             towers.calibrate(frameWidth: frame.width)
         }
+
+        // Same rule as live: nothing is attributed to anybody until the side is
+        // known. A short frame set may never accumulate enough panel text, in
+        // which case replay reports that instead of scoring on an assumption.
+        if !Regions.latched {
+            // Same match gate as live. A recorded menu frame is still a menu
+            // frame, and must not be allowed to decide the side.
+            guard let m = hud.matchProbe(cg) else {
+                print("\(f)\n  not a match frame — side detection held")
+                replaySide.discardEvidence()
+                continue
+            }
+            if let forced = opts.forcedSide {
+                latchSide(forced, image: cg, evidence: "forced by --side, panel detection skipped",
+                          topBarMirrors: m.topBarMirrors)
+            } else {
+                let probe = hud.panelHits(cg)
+                if let side = replaySide.observe(left: probe.left, right: probe.right) {
+                    latchSide(side, image: cg, evidence: replaySide.evidence,
+                              topBarMirrors: m.topBarMirrors)
+                } else {
+                    print("\(f)\n  deciding side (\(replaySide.evidence))")
+                    continue
+                }
+            }
+        }
+
+        // Replaying already-saved PNGs rarely needs saving again, so `auto`
+        // stays quiet here — it only arms on a mirrored or undecidable layout.
+        if frameDump.shouldCapture() { frameDump.capture(cg) }
+
         let counts = detector.scan(frame)
         let snap = hud.read(cg)
         if let r = snap.round { detector.noteRound(r) }
         detector.setAvailable(cards: snap.sendCards)
         let events = detector.update(counts: counts, cards: snap.sendCards)
-        _ = towers.update(frame, round: snap.round ?? 0)
-        model.noteTowerSpend(total: towers.totalSpend, builds: towers.buildCount)
+        let newBuilds = towers.update(frame, round: snap.round ?? 0)
         model.update(snap: snap, events: events)
+        for b in newBuilds { model.noteBuild(b) }
 
         let cards = snap.sendCards
             .map { "\($0.type.rawValue) x\($0.quantity) +\($0.eco) $\($0.cost)" }
@@ -378,7 +564,8 @@ func runReplay(_ dir: String) -> Never {
     eco            \(String(format: "%.1f", b.eco))  (+\(formatMoney(b.payoutPerTick)) per \(String(format: "%.1fs", b.tickPeriod)))
     sends detected \(b.sendsDetected) (\(b.lowConfidenceSends) low confidence)
     into sends     \(formatMoney(b.sendSpend))
-    into towers    \(formatMoney(b.towerSpend))  (\(b.buildCount) builds)
+    into towers    \(formatMoney(b.towerSpend))  (\(b.buildCount) builds, \(b.clippedBuilds) clipped)
+    towers claimed \(formatMoney(b.towerSpendRaw))  (before the affordability bound)
     generated      \(formatMoney(b.totalGenerated))
     cash           \(formatMoney(b.cash))
     cash ceiling   \(formatMoney(b.cashCeiling))
@@ -423,7 +610,7 @@ Task {
     await MainActor.run {
         if !opts.headless {
             let o = OverlayPanel()
-            o.reposition(gameFrame: win.frame)
+            o.reposition(gameFrame: win.frame, corner: overlayCorner())
             o.show()
             overlay = o
         }

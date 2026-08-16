@@ -80,6 +80,45 @@ final class SideDetector {
         return side
     }
 
+    /// Consecutive post-latch samples that pointed the other way.
+    private var contradictions = 0
+    /// How many in a row before the latch is overturned. The verifier only
+    /// counts samples that were conclusive on their own, so this is four
+    /// independent disagreements, not four frames of noise.
+    private let contradictionsToFlip = 4
+
+    /// Keep watching after the latch.
+    ///
+    /// A latch was permanent and unexamined until a run proved why that is not
+    /// good enough: it decided from menu chrome before the board existed, got
+    /// the side backwards, and produced confident inverted books for the whole
+    /// match with nothing on screen or on disk to say so. Gating detection on a
+    /// live match fixes that specific cause; this catches the general case.
+    ///
+    /// Returns the corrected side on the sample that overturns the call.
+    func verify(left: Int, right: Int) -> PlayerSide? {
+        guard let current = decision else { return nil }
+
+        // Only conclusive samples get a vote.
+        let hi = max(left, right), lo = min(left, right)
+        guard hi >= 2, Double(hi) >= Double(lo) * dominance || lo == 0 else { return nil }
+
+        let seen: PlayerSide = right > left ? .right : .left
+        guard seen != current else { contradictions = 0; return nil }
+
+        contradictions += 1
+        guard contradictions >= contradictionsToFlip else { return nil }
+        contradictions = 0
+        decision = seen
+        return seen
+    }
+
+    /// Throw away evidence gathered on a screen that turned out not to be a
+    /// match, so menu chrome can never contribute to the decision.
+    func discardEvidence() {
+        leftHits = 0; rightHits = 0; frames = 0; firstSampleAt = nil
+    }
+
     /// One line describing what the call was based on.
     var evidence: String {
         "\(frames) frames, panel-column text hits left=\(leftHits) right=\(rightHits)"

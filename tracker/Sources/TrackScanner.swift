@@ -14,6 +14,17 @@
 // like. Bloons move, so they never hold one pixel long enough to be absorbed.
 // Towers do — and the moment of absorption is itself the signal that something
 // was built, which is how tower spending becomes observable.
+//
+// Two things that signal needs before a caller can trust it:
+//
+//   - Absorption must be ONE-SHOT per sample. Absorbing sets the background to
+//     the current colour, so a sample that drifts back out — animated water, a
+//     flag, a shadow, a steady stream of same-coloured bloons over one spot —
+//     settles and absorbs again, forever. Billing each cycle as a purchase is
+//     what made tower spend diverge to 5x the opponent's possible income.
+//   - Absorptions must carry their LOCATION. A tower is a compact blob; scenery
+//     is a drizzle spread over the whole half-screen. A bare count cannot tell
+//     the two apart, so the indices go out with the result.
 
 import Foundation
 import CoreGraphics
@@ -29,11 +40,31 @@ final class TrackScanner {
     private var gridW = 0, gridH = 0
     private let driftAlpha = 0.02
 
+    /// Absorption is one-shot per sample. Re-absorptions are still applied to
+    /// the background model — that part was right — but they are not reported,
+    /// because only the first one can possibly mean "something arrived here".
+    private var absorbedEver: [Bool] = []
+    /// Whether each sample was foreground on the last scan, so a caller can ask
+    /// whether a blob it saw absorb has actually stayed put.
+    private var foregroundNow: [Bool] = []
+    /// How often each sample has been a moving bloon colour. Where the bloons
+    /// walk is the track, and towers cannot be built on the track.
+    private var bloonHits: [Int] = []
+
+    /// Bloon-coloured frames before a sample counts as track rather than
+    /// ground. Low enough to learn a path within the first round, high enough
+    /// that a bloon passing over a tower spot once does not mask it.
+    static let pathHits = 8
+
     struct Result {
         var counts: [BloonType: Int] = [:]
-        /// Samples absorbed into the background this frame — a proxy for
-        /// "something was just built here and stopped moving".
+        /// Samples absorbed into the background for the FIRST time this frame —
+        /// a proxy for "something was just built here and stopped moving".
+        /// Re-absorptions are excluded; see the note at the top of the file.
         var absorbed: Int = 0
+        /// Grid indices of those absorptions, so the caller can test whether
+        /// they form one tower-sized blob rather than a scattering.
+        var absorbedAt: [Int] = []
         var foreground: Int = 0
     }
 
@@ -54,6 +85,28 @@ final class TrackScanner {
         bgR = []; bgG = []; bgB = []
         prevR = []; prevG = []; prevB = []
         stableFor = []
+        absorbedEver = []; foregroundNow = []; bloonHits = []
+    }
+
+    /// Grid dimensions, so a caller can turn indices into coordinates.
+    var grid: (w: Int, h: Int) { (gridW, gridH) }
+
+    /// Fraction of these samples that are settled right now — background rather
+    /// than foreground. A tower is still settled seconds after it lands; a
+    /// bloon stream that briefly held one spot still is foreground again the
+    /// moment it moves on. This is the strongest build/not-build discriminator
+    /// available, and it costs one array lookup per sample.
+    func settledFraction(_ indices: [Int]) -> Double {
+        guard !indices.isEmpty, !foregroundNow.isEmpty else { return 0 }
+        var settled = 0
+        for i in indices where i < foregroundNow.count && !foregroundNow[i] { settled += 1 }
+        return Double(settled) / Double(indices.count)
+    }
+
+    /// Whether this sample sits on the bloon path. Learned from where bloon
+    /// colours keep moving through, not configured per map.
+    func isOnPath(_ idx: Int) -> Bool {
+        idx < bloonHits.count && bloonHits[idx] >= Self.pathHits
     }
 
     func scan(_ frame: Frame, allowed: Set<BloonType>) -> Result {
@@ -68,6 +121,9 @@ final class TrackScanner {
             bgR = .init(repeating: -1, count: n); bgG = .init(repeating: -1, count: n); bgB = .init(repeating: -1, count: n)
             prevR = .init(repeating: -1, count: n); prevG = .init(repeating: -1, count: n); prevB = .init(repeating: -1, count: n)
             stableFor = .init(repeating: 0, count: n)
+            absorbedEver = .init(repeating: false, count: n)
+            foregroundNow = .init(repeating: false, count: n)
+            bloonHits = .init(repeating: 0, count: n)
         }
 
         var out = Result()
@@ -86,6 +142,7 @@ final class TrackScanner {
 
                 let fgDist = abs(r - bgR[idx]) + abs(g - bgG[idx]) + abs(b - bgB[idx])
                 let isForeground = fgDist > 0.28
+                foregroundNow[idx] = isForeground
 
                 if !isForeground {
                     // Ordinary slow drift for lighting and animated scenery.
@@ -108,7 +165,16 @@ final class TrackScanner {
                         // Settled. Treat it as scenery from now on.
                         bgR[idx] = r; bgG[idx] = g; bgB[idx] = b
                         stableFor[idx] = 0
-                        out.absorbed += 1
+                        // The background update above happens every time; the
+                        // REPORT happens once. A sample that keeps cycling
+                        // through here is animated scenery, not a tower being
+                        // rebought every few seconds.
+                        if !absorbedEver[idx] {
+                            absorbedEver[idx] = true
+                            out.absorbed += 1
+                            out.absorbedAt.append(idx)
+                        }
+                        foregroundNow[idx] = false
                         prevR[idx] = r; prevG[idx] = g; prevB[idx] = b
                         continue
                     }
@@ -119,6 +185,8 @@ final class TrackScanner {
 
                 for t in allowed where hsb.matches(t) {
                     out.counts[t, default: 0] += 1
+                    // Moving bloon colour here — evidence this sample is track.
+                    bloonHits[idx] += 1
                     break
                 }
             }

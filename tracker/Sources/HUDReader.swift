@@ -81,11 +81,16 @@ final class HUDReader {
     /// Text hits in each outer column, below the top bar — the panel signal that
     /// decides which side you are on. Only digit-bearing hits count: the shop
     /// prices and send quantities are numeric, whereas the stray glyphs Vision
-    /// hallucinates out of map scenery generally are not. Uses the fast
-    /// recogniser; this runs before the side is known and only needs a count.
+    /// hallucinates out of map scenery generally are not.
+    ///
+    /// Accurate mode, deliberately. The fast recogniser misses the panel
+    /// entirely on roughly the first third of frames — measured on the
+    /// calibration set, it needed 8 frames to reach the same call accurate mode
+    /// reaches in 3. This only runs until the side latches, so the cost is a few
+    /// seconds at startup and then nothing.
     func panelHits(_ image: CGImage) -> (left: Int, right: Int) {
         func hits(_ region: HUDRegion) -> Int {
-            recognize(image, region.pixels(image.width, image.height), accurate: false)
+            recognize(image, region.pixels(image.width, image.height), accurate: true)
                 .filter { $0.0.contains(where: \.isNumber) }.count
         }
         return (hits(Regions.leftProbe), hits(Regions.rightProbe))
@@ -100,6 +105,27 @@ final class HUDReader {
               let n = parseInt(String(t[t.startIndex..<slash])),
               (1...50).contains(n) else { return nil }
         return n
+    }
+
+    /// Whether a match is actually on screen, and where the top bar sits.
+    ///
+    /// Deliberately side-independent — deciding the side requires knowing a
+    /// match is up, so this cannot itself depend on the side without being
+    /// circular. The round counter reads "n/40" in exactly one of two known
+    /// places and in neither the menu nor the lobby, and the two lives readouts
+    /// are mirror images of each other, so testing both positions covers either
+    /// orientation.
+    ///
+    /// This exists because a run latched the side off menu chrome 43 seconds
+    /// before the board came up, and got it backwards.
+    func matchProbe(_ image: CGImage) -> (round: Int, topBarMirrors: Bool)? {
+        for cand in Regions.roundCandidates {
+            guard let r = probeRound(image, cand.region) else { continue }
+            guard parseInt(text(image, Regions.leftLives)) != nil,
+                  parseInt(text(image, Regions.rightLives)) != nil else { continue }
+            return (r, cand.topBarMirrors)
+        }
+        return nil
     }
 
     func read(_ image: CGImage) -> HUDSnapshot {

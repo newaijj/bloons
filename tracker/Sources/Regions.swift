@@ -141,6 +141,14 @@ enum Regions {
     static let leftProbe  = HUDRegion(name: "probe_left",  rect: CGRect(x: 0.0,   y: 0.15, width: 0.075, height: 0.77))
     static let rightProbe = HUDRegion(name: "probe_right", rect: CGRect(x: 0.925, y: 0.15, width: 0.075, height: 0.77))
 
+    /// The two lives readouts BY SCREEN POSITION rather than by owner. They are
+    /// mirror images of each other, so whichever side you are on, both of these
+    /// positions hold a number during a match and neither does in a menu.
+    /// Used to establish that a match is up before the side is decided — which
+    /// has to happen without knowing the side, or it is circular.
+    static var leftLives: HUDRegion { renamed(M.oppLives, "left_lives") }
+    static var rightLives: HUDRegion { renamed(M.myLives, "right_lives") }
+
     static var hudText: [HUDRegion] { [oppName, oppLives, myCash, myEco, round, myLives, myName] }
     static var all: [HUDRegion] { hudText + [myQueue, sendMenu, myTrack, oppTrack] }
 }

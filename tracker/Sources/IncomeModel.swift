@@ -13,6 +13,16 @@
 // is recoverable but their tower spending is not fully observable, so the honest
 // statement is "they have at most this much". That is also the form the
 // affordability question actually needs.
+//
+// Tower spend is bounded by the same accounting. They cannot spend money they
+// never had, and both terms of what they had — eco income and send costs — are
+// recovered rather than estimated. So `cashCeiling` is a hard bound on
+// cumulative tower spend, applied per build at the moment of the build rather
+// than once at the end. Clipping is COUNTED, not hidden: `cash` used to be
+// `max(0, …)` around an unbounded estimate, which quietly absorbed a tower
+// total 5x larger than the opponent's entire possible income. A rising
+// `clippedBuilds` now says the detector is over-firing, in the output, where it
+// can be seen.
 
 import Foundation
 
@@ -86,7 +96,13 @@ struct OpponentBooks {
     var ecoIncome: Double = 0
     var popIncome: Double = 0
     var sendSpend: Double = 0
+    /// Tower spend after the affordability bound. Never exceeds `cashCeiling`.
     var towerSpend: Double = 0
+    /// What the detector claimed before the bound was applied. Equal to
+    /// `towerSpend` when nothing has been clipped; larger means the detector is
+    /// asserting purchases the opponent could not have made.
+    var towerSpendRaw: Double = 0
+    var clippedBuilds: Int = 0
     var sendsDetected: Int = 0
     var lowConfidenceSends: Int = 0
     var buildCount: Int = 0
@@ -94,7 +110,9 @@ struct OpponentBooks {
     var totalGenerated: Double { ecoIncome + popIncome }
 
     /// What they actually have, best estimate. Tower spend is the estimated
-    /// term, so this is softer than the ceiling below it.
+    /// term, so this is softer than the ceiling below it — but it is now bounded
+    /// by it rather than clamped against it, so this can no longer be driven to
+    /// zero by an impossible tower total.
     var cash: Double { max(0, totalGenerated - sendSpend - towerSpend) }
 
     /// What they could have if they had built nothing. A hard ceiling: income
@@ -126,6 +144,26 @@ final class IncomeModel {
     private var cardTable: [BloonType: SendCard] = [:]
 
     init(roundData: RoundData) { self.roundData = roundData }
+
+    /// Throw the books away and re-seed from scratch.
+    ///
+    /// Called when the side latch is overturned mid-match. Everything in here
+    /// was derived from a specific half of the screen — their eco from bloons on
+    /// what we believed was our track, their spend from settles on what we
+    /// believed was their board — so if that belief was wrong, none of it is
+    /// salvageable. The eco calibrator is deliberately NOT reset: it is fitted
+    /// from your own cash jumps in the centre HUD, which no side confusion
+    /// touches.
+    func reset() {
+        books = OpponentBooks()
+        baseCash = nil
+        baseEco = nil
+        lastTickAt = nil
+        completedRounds.removeAll()
+        currentRound = 0
+        sendLog.removeAll()
+        cardTable.removeAll()
+    }
 
     var isSeeded: Bool { baseEco != nil }
 
@@ -193,13 +231,35 @@ final class IncomeModel {
 
     func recentSends(_ n: Int) -> [SendEvent] { Array(sendLog.suffix(n).reversed()) }
 
-    /// Fold in what the tower watcher has seen them build.
-    func noteTowerSpend(total: Int, builds: Int) {
-        books.towerSpend = Double(total)
-        books.buildCount = builds
+    /// Charge one build against their books, bounded by what they could
+    /// possibly have had to spend at that moment.
+    ///
+    /// Called per event rather than being handed a running total, because the
+    /// bound is only meaningful at the instant of the purchase — `cashCeiling`
+    /// grows with income, so a total reconciled once at the end would let an
+    /// early impossible build hide behind later earnings.
+    ///
+    /// Builds before the model is seeded are dropped rather than charged: until
+    /// their starting position is known there is nothing to charge against, and
+    /// a zero ceiling would clip every one of them to nothing anyway. The tower
+    /// watcher's own settle window covers roughly the same opening seconds.
+    func noteBuild(_ event: BuildEvent) {
+        guard isSeeded else { return }
+        let asked = Double(event.estimatedCost)
+        let headroom = max(0, books.cashCeiling - books.towerSpend)
+        let charged = min(asked, headroom)
+
+        books.towerSpendRaw += asked
+        books.towerSpend += charged
+        books.buildCount += 1
+        if charged < asked - 0.5 { books.clippedBuilds += 1 }
     }
 
-    /// Whether they can cover a price. Uses the best estimate; the ceiling is
-    /// available separately for the "could they possibly" version.
+    /// Whether they can cover a price, on the best estimate of what they hold.
     func canAfford(_ price: Int) -> Bool { books.cash >= Double(price) }
+
+    /// Whether they could conceivably cover it, ignoring everything we believe
+    /// they built. The other end of the interval, and the safe one to defend
+    /// against: tower spend is estimated, so `canAfford` can be wrong low.
+    func couldPossiblyAfford(_ price: Int) -> Bool { books.cashCeiling >= Double(price) }
 }

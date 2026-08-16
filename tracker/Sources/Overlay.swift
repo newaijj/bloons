@@ -49,12 +49,29 @@ final class OverlayPanel {
 
     func show() { panel.orderFrontRegardless() }
 
-    /// Pin to the top-left of the game window, just under the HUD bar.
-    func reposition(gameFrame: CGRect) {
+    /// Which bottom corner of the game window to sit in.
+    ///
+    /// The overlay is opaque enough to hide whatever is under it, so it belongs
+    /// over the OPPONENT's half: a reconstruction of their books is worth less
+    /// than an unobstructed view of your own defence. Which corner that is
+    /// depends on the side, so this follows the latch.
+    enum Corner { case bottomLeft, bottomRight }
+
+    /// Pin to a bottom corner of the game window, inset from the edge.
+    func reposition(gameFrame: CGRect, corner: Corner) {
         guard let screen = NSScreen.main else { return }
-        // SCWindow frames are top-left origin; AppKit windows are bottom-left.
-        let y = screen.frame.height - gameFrame.maxY + 14
-        panel.setFrameOrigin(NSPoint(x: gameFrame.minX + 14, y: y))
+        // SCWindow frames are top-left origin; AppKit windows are bottom-left,
+        // so gameFrame.maxY is the window's BOTTOM edge and has to be flipped.
+        let inset: CGFloat = 14
+        let y = screen.frame.height - gameFrame.maxY + inset
+        let x: CGFloat
+        switch corner {
+        case .bottomLeft:  x = gameFrame.minX + inset
+        // Never push the panel off the left edge if the window is narrower than
+        // the panel itself — a windowed game can be resized to anything.
+        case .bottomRight: x = max(gameFrame.minX + inset, gameFrame.maxX - width - inset)
+        }
+        panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 
     func render(_ lines: [OverlayLine]) {

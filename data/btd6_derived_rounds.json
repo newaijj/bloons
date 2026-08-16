@@ -1,0 +1,926 @@
+{
+ "1": {
+  "btd6_round": 2,
+  "groups": [
+   {
+    "bloon": "Red",
+    "count": 35,
+    "start_s": 0.0,
+    "end_s": 19.0
+   }
+  ],
+  "total_bloons": 35
+ },
+ "2": {
+  "btd6_round": 4,
+  "groups": [
+   {
+    "bloon": "Red",
+    "count": 25,
+    "start_s": 0.0,
+    "end_s": 12.0
+   },
+   {
+    "bloon": "Blue",
+    "count": 18,
+    "start_s": 7.9,
+    "end_s": 10.4
+   },
+   {
+    "bloon": "Red",
+    "count": 10,
+    "start_s": 14.51,
+    "end_s": 17.31
+   }
+  ],
+  "total_bloons": 53
+ },
+ "3": {
+  "btd6_round": 6,
+  "groups": [
+   {
+    "bloon": "Green",
+    "count": 4,
+    "start_s": 0.0,
+    "end_s": 1.71
+   },
+   {
+    "bloon": "Red",
+    "count": 15,
+    "start_s": 5.33,
+    "end_s": 10.33
+   },
+   {
+    "bloon": "Blue",
+    "count": 15,
+    "start_s": 10.8,
+    "end_s": 18.7
+   }
+  ],
+  "total_bloons": 34
+ },
+ "4": {
+  "btd6_round": 8,
+  "groups": [
+   {
+    "bloon": "Blue",
+    "count": 20,
+    "start_s": 0.0,
+    "end_s": 10.84
+   },
+   {
+    "bloon": "Green",
+    "count": 2,
+    "start_s": 11.42,
+    "end_s": 11.99
+   },
+   {
+    "bloon": "Red",
+    "count": 10,
+    "start_s": 14.03,
+    "end_s": 16.0
+   },
+   {
+    "bloon": "Green",
+    "count": 12,
+    "start_s": 18.27,
+    "end_s": 28.87
+   }
+  ],
+  "total_bloons": 44
+ },
+ "5": {
+  "btd6_round": 10,
+  "groups": [
+   {
+    "bloon": "Blue",
+    "count": 60,
+    "start_s": 0.0,
+    "end_s": 35.0
+   },
+   {
+    "bloon": "Blue",
+    "count": 20,
+    "start_s": 35.0,
+    "end_s": 44.0
+   },
+   {
+    "bloon": "Blue",
+    "count": 22,
+    "start_s": 44.0,
+    "end_s": 47.99
+   }
+  ],
+  "total_bloons": 102
+ },
+ "6": {
+  "btd6_round": 12,
+  "groups": [
+   {
+    "bloon": "Green",
+    "count": 10,
+    "start_s": 0.0,
+    "end_s": 5.13
+   },
+   {
+    "bloon": "Blue",
+    "count": 15,
+    "start_s": 5.7,
+    "end_s": 11.77
+   },
+   {
+    "bloon": "Yellow",
+    "count": 5,
+    "start_s": 14.27,
+    "end_s": 17.39
+   }
+  ],
+  "total_bloons": 30
+ },
+ "7": {
+  "btd6_round": 14,
+  "groups": [
+   {
+    "bloon": "Red",
+    "count": 18,
+    "start_s": 0.0,
+    "end_s": 9.71
+   },
+   {
+    "bloon": "Red",
+    "count": 31,
+    "start_s": 9.5,
+    "end_s": 26.63
+   },
+   {
+    "bloon": "Blue",
+    "count": 5,
+    "start_s": 2.85,
+    "end_s": 3.97
+   },
+   {
+    "bloon": "Blue",
+    "count": 10,
+    "start_s": 15.96,
+    "end_s": 17.34
+   },
+   {
+    "bloon": "Green",
+    "count": 5,
+    "start_s": 5.71,
+    "end_s": 6.83
+   },
+   {
+    "bloon": "Green",
+    "count": 5,
+    "start_s": 19.84,
+    "end_s": 21.22
+   },
+   {
+    "bloon": "Yellow",
+    "count": 4,
+    "start_s": 8.56,
+    "end_s": 9.51
+   },
+   {
+    "bloon": "Yellow",
+    "count": 5,
+    "start_s": 23.71,
+    "end_s": 25.26
+   }
+  ],
+  "total_bloons": 83
+ },
+ "8": {
+  "btd6_round": 16,
+  "groups": [
+   {
+    "bloon": "Green",
+    "count": 20,
+    "start_s": 0.0,
+    "end_s": 10.85
+   },
+   {
+    "bloon": "Yellow",
+    "count": 8,
+    "start_s": 14.59,
+    "end_s": 16.02
+   },
+   {
+    "bloon": "Green",
+    "count": 20,
+    "start_s": 0.2,
+    "end_s": 11.05
+   }
+  ],
+  "total_bloons": 48
+ },
+ "9": {
+  "btd6_round": 18,
+  "groups": [
+   {
+    "bloon": "Green",
+    "count": 60,
+    "start_s": 0.0,
+    "end_s": 25.0
+   },
+   {
+    "bloon": "Green",
+    "count": 20,
+    "start_s": 25.0,
+    "end_s": 26.82
+   }
+  ],
+  "total_bloons": 80
+ },
+ "10": {
+  "btd6_round": 20,
+  "groups": [
+   {
+    "bloon": "Black",
+    "count": 6,
+    "start_s": 0.0,
+    "end_s": 5.25
+   }
+  ],
+  "total_bloons": 6
+ },
+ "11": {
+  "btd6_round": 22,
+  "groups": [
+   {
+    "bloon": "White",
+    "count": 16,
+    "start_s": 0.0,
+    "end_s": 8.0
+   }
+  ],
+  "total_bloons": 16
+ },
+ "12": {
+  "btd6_round": 24,
+  "groups": [
+   {
+    "bloon": "GreenCamo",
+    "count": 1,
+    "start_s": 0.0,
+    "end_s": 1.0
+   },
+   {
+    "bloon": "Blue",
+    "count": 20,
+    "start_s": 3.0,
+    "end_s": 9.0
+   }
+  ],
+  "total_bloons": 21
+ },
+ "13": {
+  "btd6_round": 26,
+  "groups": [
+   {
+    "bloon": "Pink",
+    "count": 23,
+    "start_s": 0.0,
+    "end_s": 8.7
+   },
+   {
+    "bloon": "Zebra",
+    "count": 4,
+    "start_s": 11.08,
+    "end_s": 14.51
+   }
+  ],
+  "total_bloons": 27
+ },
+ "14": {
+  "btd6_round": 28,
+  "groups": [
+   {
+    "bloon": "Lead",
+    "count": 6,
+    "start_s": 0.0,
+    "end_s": 5.0
+   }
+  ],
+  "total_bloons": 6
+ },
+ "15": {
+  "btd6_round": 30,
+  "groups": [
+   {
+    "bloon": "Lead",
+    "count": 9,
+    "start_s": 0.0,
+    "end_s": 13.07
+   }
+  ],
+  "total_bloons": 9
+ },
+ "16": {
+  "btd6_round": 32,
+  "groups": [
+   {
+    "bloon": "Black",
+    "count": 15,
+    "start_s": 0.0,
+    "end_s": 9.0
+   },
+   {
+    "bloon": "White",
+    "count": 20,
+    "start_s": 10.34,
+    "end_s": 21.34
+   },
+   {
+    "bloon": "Purple",
+    "count": 10,
+    "start_s": 21.96,
+    "end_s": 27.96
+   }
+  ],
+  "total_bloons": 45
+ },
+ "17": {
+  "btd6_round": 34,
+  "groups": [
+   {
+    "bloon": "Yellow",
+    "count": 160,
+    "start_s": 0.0,
+    "end_s": 36.0
+   },
+   {
+    "bloon": "Zebra",
+    "count": 6,
+    "start_s": 8.62,
+    "end_s": 26.7
+   }
+  ],
+  "total_bloons": 166
+ },
+ "18": {
+  "btd6_round": 36,
+  "groups": [
+   {
+    "bloon": "Pink",
+    "count": 40,
+    "start_s": 0.0,
+    "end_s": 1.51
+   },
+   {
+    "bloon": "Pink",
+    "count": 40,
+    "start_s": 8.49,
+    "end_s": 9.84
+   },
+   {
+    "bloon": "Pink",
+    "count": 60,
+    "start_s": 16.99,
+    "end_s": 20.99
+   },
+   {
+    "bloon": "GreenRegrowCamo",
+    "count": 10,
+    "start_s": 4.01,
+    "end_s": 5.36
+   },
+   {
+    "bloon": "GreenRegrowCamo",
+    "count": 10,
+    "start_s": 12.67,
+    "end_s": 14.02
+   }
+  ],
+  "total_bloons": 160
+ },
+ "19": {
+  "btd6_round": 38,
+  "groups": [
+   {
+    "bloon": "White",
+    "count": 17,
+    "start_s": 0.0,
+    "end_s": 3.6
+   },
+   {
+    "bloon": "Lead",
+    "count": 14,
+    "start_s": 4.83,
+    "end_s": 13.4
+   },
+   {
+    "bloon": "Zebra",
+    "count": 10,
+    "start_s": 12.09,
+    "end_s": 18.37
+   },
+   {
+    "bloon": "Ceramic",
+    "count": 2,
+    "start_s": 27.06,
+    "end_s": 29.06
+   },
+   {
+    "bloon": "Pink",
+    "count": 42,
+    "start_s": 2.0,
+    "end_s": 25.41
+   }
+  ],
+  "total_bloons": 85
+ },
+ "20": {
+  "btd6_round": 40,
+  "groups": [
+   {
+    "bloon": "Moab",
+    "count": 1,
+    "start_s": 0.0,
+    "end_s": 1.0
+   }
+  ],
+  "total_bloons": 1
+ },
+ "21": {
+  "btd6_round": 42,
+  "groups": [
+   {
+    "bloon": "RainbowRegrow",
+    "count": 6,
+    "start_s": 0.0,
+    "end_s": 5.0
+   },
+   {
+    "bloon": "RainbowCamo",
+    "count": 5,
+    "start_s": 6.6,
+    "end_s": 11.6
+   }
+  ],
+  "total_bloons": 11
+ },
+ "22": {
+  "btd6_round": 44,
+  "groups": [
+   {
+    "bloon": "Zebra",
+    "count": 10,
+    "start_s": 0.0,
+    "end_s": 10.0
+   },
+   {
+    "bloon": "Zebra",
+    "count": 10,
+    "start_s": 9.92,
+    "end_s": 16.92
+   },
+   {
+    "bloon": "Zebra",
+    "count": 10,
+    "start_s": 16.83,
+    "end_s": 20.83
+   },
+   {
+    "bloon": "Zebra",
+    "count": 10,
+    "start_s": 20.75,
+    "end_s": 22.75
+   },
+   {
+    "bloon": "Zebra",
+    "count": 10,
+    "start_s": 22.67,
+    "end_s": 23.67
+   }
+  ],
+  "total_bloons": 50
+ },
+ "23": {
+  "btd6_round": 46,
+  "groups": [
+   {
+    "bloon": "CeramicFortified",
+    "count": 6,
+    "start_s": 0.0,
+    "end_s": 7.0
+   }
+  ],
+  "total_bloons": 6
+ },
+ "24": {
+  "btd6_round": 48,
+  "groups": [
+   {
+    "bloon": "PinkRegrow",
+    "count": 40,
+    "start_s": 0.0,
+    "end_s": 15.0
+   },
+   {
+    "bloon": "Rainbow",
+    "count": 40,
+    "start_s": 30.54,
+    "end_s": 50.54
+   },
+   {
+    "bloon": "CeramicFortified",
+    "count": 3,
+    "start_s": 51.72,
+    "end_s": 55.72
+   },
+   {
+    "bloon": "PurpleRegrowCamo",
+    "count": 30,
+    "start_s": 15.29,
+    "end_s": 30.29
+   }
+  ],
+  "total_bloons": 113
+ },
+ "25": {
+  "btd6_round": 50,
+  "groups": [
+   {
+    "bloon": "Moab",
+    "count": 1,
+    "start_s": 0.0,
+    "end_s": 1.0
+   },
+   {
+    "bloon": "Moab",
+    "count": 1,
+    "start_s": 27.98,
+    "end_s": 28.98
+   },
+   {
+    "bloon": "LeadFortified",
+    "count": 8,
+    "start_s": 3.06,
+    "end_s": 7.06
+   },
+   {
+    "bloon": "Red",
+    "count": 20,
+    "start_s": 9.89,
+    "end_s": 11.23
+   },
+   {
+    "bloon": "Ceramic",
+    "count": 20,
+    "start_s": 16.56,
+    "end_s": 27.41
+   }
+  ],
+  "total_bloons": 50
+ },
+ "26": {
+  "btd6_round": 52,
+  "groups": [
+   {
+    "bloon": "Rainbow",
+    "count": 25,
+    "start_s": 0.0,
+    "end_s": 13.7
+   },
+   {
+    "bloon": "Moab",
+    "count": 1,
+    "start_s": 14.27,
+    "end_s": 15.27
+   },
+   {
+    "bloon": "Moab",
+    "count": 1,
+    "start_s": 17.7,
+    "end_s": 18.7
+   },
+   {
+    "bloon": "Ceramic",
+    "count": 5,
+    "start_s": 14.85,
+    "end_s": 17.13
+   },
+   {
+    "bloon": "Ceramic",
+    "count": 5,
+    "start_s": 18.27,
+    "end_s": 20.56
+   }
+  ],
+  "total_bloons": 37
+ },
+ "27": {
+  "btd6_round": 54,
+  "groups": [
+   {
+    "bloon": "Ceramic",
+    "count": 35,
+    "start_s": 0.0,
+    "end_s": 19.41
+   },
+   {
+    "bloon": "Moab",
+    "count": 1,
+    "start_s": 6.23,
+    "end_s": 7.23
+   },
+   {
+    "bloon": "Moab",
+    "count": 1,
+    "start_s": 11.99,
+    "end_s": 12.99
+   }
+  ],
+  "total_bloons": 37
+ },
+ "28": {
+  "btd6_round": 56,
+  "groups": [
+   {
+    "bloon": "RainbowCamo",
+    "count": 40,
+    "start_s": 0.0,
+    "end_s": 12.0
+   },
+   {
+    "bloon": "Moab",
+    "count": 1,
+    "start_s": 15.18,
+    "end_s": 16.18
+   }
+  ],
+  "total_bloons": 41
+ },
+ "29": {
+  "btd6_round": 58,
+  "groups": [
+   {
+    "bloon": "Moab",
+    "count": 5,
+    "start_s": 0.0,
+    "end_s": 43.98
+   },
+   {
+    "bloon": "Ceramic",
+    "count": 15,
+    "start_s": 0.0,
+    "end_s": 22.0
+   },
+   {
+    "bloon": "CeramicFortified",
+    "count": 10,
+    "start_s": 23.53,
+    "end_s": 43.53
+   }
+  ],
+  "total_bloons": 30
+ },
+ "30": {
+  "btd6_round": 60,
+  "groups": [
+   {
+    "bloon": "Bfb",
+    "count": 1,
+    "start_s": 0.0,
+    "end_s": 1.0
+   }
+  ],
+  "total_bloons": 1
+ },
+ "31": {
+  "btd6_round": 62,
+  "groups": [
+   {
+    "bloon": "Moab",
+    "count": 5,
+    "start_s": 1.08,
+    "end_s": 21.08
+   },
+   {
+    "bloon": "Purple",
+    "count": 250,
+    "start_s": 0.0,
+    "end_s": 40.0
+   },
+   {
+    "bloon": "RainbowRegrowCamo",
+    "count": 15,
+    "start_s": 40.3,
+    "end_s": 48.29
+   },
+   {
+    "bloon": "MoabFortified",
+    "count": 2,
+    "start_s": 32.14,
+    "end_s": 37.14
+   }
+  ],
+  "total_bloons": 272
+ },
+ "32": {
+  "btd6_round": 64,
+  "groups": [
+   {
+    "bloon": "Moab",
+    "count": 6,
+    "start_s": 0.0,
+    "end_s": 4.0
+   },
+   {
+    "bloon": "MoabFortified",
+    "count": 3,
+    "start_s": 5.53,
+    "end_s": 9.53
+   }
+  ],
+  "total_bloons": 9
+ },
+ "33": {
+  "btd6_round": 66,
+  "groups": [
+   {
+    "bloon": "Moab",
+    "count": 2,
+    "start_s": 0.0,
+    "end_s": 0.5
+   },
+   {
+    "bloon": "Moab",
+    "count": 2,
+    "start_s": 7.0,
+    "end_s": 7.5
+   },
+   {
+    "bloon": "Moab",
+    "count": 4,
+    "start_s": 13.92,
+    "end_s": 14.92
+   },
+   {
+    "bloon": "MoabFortified",
+    "count": 3,
+    "start_s": 20.75,
+    "end_s": 22.75
+   }
+  ],
+  "total_bloons": 11
+ },
+ "34": {
+  "btd6_round": 68,
+  "groups": [
+   {
+    "bloon": "Moab",
+    "count": 4,
+    "start_s": 0.0,
+    "end_s": 1.71
+   },
+   {
+    "bloon": "Bfb",
+    "count": 1,
+    "start_s": 7.44,
+    "end_s": 8.44
+   }
+  ],
+  "total_bloons": 5
+ },
+ "35": {
+  "btd6_round": 70,
+  "groups": [
+   {
+    "bloon": "Rainbow",
+    "count": 200,
+    "start_s": 0.0,
+    "end_s": 40.0
+   },
+   {
+    "bloon": "Moab",
+    "count": 4,
+    "start_s": 40.0,
+    "end_s": 41.14
+   },
+   {
+    "bloon": "WhiteRegrowCamo",
+    "count": 120,
+    "start_s": 0.0,
+    "end_s": 38.0
+   }
+  ],
+  "total_bloons": 324
+ },
+ "36": {
+  "btd6_round": 72,
+  "groups": [
+   {
+    "bloon": "Bfb",
+    "count": 1,
+    "start_s": 3.42,
+    "end_s": 3.92
+   },
+   {
+    "bloon": "Bfb",
+    "count": 1,
+    "start_s": 16.12,
+    "end_s": 16.62
+   },
+   {
+    "bloon": "CeramicRegrow",
+    "count": 38,
+    "start_s": 0.0,
+    "end_s": 21.7
+   }
+  ],
+  "total_bloons": 40
+ },
+ "37": {
+  "btd6_round": 74,
+  "groups": [
+   {
+    "bloon": "Ceramic",
+    "count": 50,
+    "start_s": 0.0,
+    "end_s": 20.0
+   },
+   {
+    "bloon": "CeramicFortified",
+    "count": 60,
+    "start_s": 54.86,
+    "end_s": 82.39
+   },
+   {
+    "bloon": "Bfb",
+    "count": 1,
+    "start_s": 43.93,
+    "end_s": 44.43
+   },
+   {
+    "bloon": "CeramicRegrowFortifiedCamo",
+    "count": 25,
+    "start_s": 21.14,
+    "end_s": 41.14
+   }
+  ],
+  "total_bloons": 136
+ },
+ "38": {
+  "btd6_round": 76,
+  "groups": [
+   {
+    "bloon": "CeramicRegrow",
+    "count": 60,
+    "start_s": 0.0,
+    "end_s": 1.78
+   }
+  ],
+  "total_bloons": 60
+ },
+ "39": {
+  "btd6_round": 78,
+  "groups": [
+   {
+    "bloon": "Rainbow",
+    "count": 150,
+    "start_s": 0.0,
+    "end_s": 90.0
+   },
+   {
+    "bloon": "Ceramic",
+    "count": 75,
+    "start_s": 10.0,
+    "end_s": 11.17
+   },
+   {
+    "bloon": "CeramicCamo",
+    "count": 72,
+    "start_s": 77.92,
+    "end_s": 79.12
+   },
+   {
+    "bloon": "Bfb",
+    "count": 1,
+    "start_s": 44.08,
+    "end_s": 45.8
+   },
+   {
+    "bloon": "Purple",
+    "count": 80,
+    "start_s": 64.4,
+    "end_s": 79.4
+   }
+  ],
+  "total_bloons": 378
+ },
+ "40": {
+  "btd6_round": 80,
+  "groups": [
+   {
+    "bloon": "Zomg",
+    "count": 1,
+    "start_s": 0.0,
+    "end_s": 2.0
+   }
+  ],
+  "total_bloons": 1
+ }
+}

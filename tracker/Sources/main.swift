@@ -55,9 +55,14 @@ struct Options {
     /// Solo modes (Hero Challenge) show an opponent with infinite lives, which
     /// no lives test can parse. See HUDReader.soloMode.
     var solo = false
-    /// Emit `file,t,cash` for every frame of a recording and exit. Used to date
-    /// labelled placements by the cash drop they caused.
+    /// Emit `file,t,cash,eco,round` for every frame of a recording and exit.
+    /// Used to date placements by the cash drop they caused — eco is what
+    /// separates a tower purchase from a send, so scanning cash alone cannot
+    /// produce ground truth.
     var scanCash: String?
+    /// Write the per-frame census as JSONL, so a replay can be scored offline
+    /// against ground truth instead of only read.
+    var censusLog: String?
 }
 
 func parseOptions() -> Options {
@@ -105,6 +110,7 @@ func parseOptions() -> Options {
         case "--census-crops": o.cropDir = it.next()
         case "--solo": o.solo = true
         case "--scan-cash": o.scanCash = it.next()
+        case "--census-log": o.censusLog = it.next()
         default: FileHandle.standardError.write("unknown arg: \(a)\n".data(using: .utf8)!)
         }
     }
@@ -183,6 +189,12 @@ let detector = SendDetector(roundData: roundData, fps: opts.fps)
 /// that reset each launch would never get past whatever you built in the first
 /// two minutes.
 let spriteLibrary = SpriteLibrary(path: resolveLibraryPath(opts.libraryPath))
+// A price the published table says cannot exist got in on some earlier run and
+// would otherwise persist forever. Say so loudly — each one is a mispaired cash
+// move, and the pairing is the thing worth fixing.
+for p in spriteLibrary.purgedAtLoad {
+    print("sprite library: dropped impossible entry \(p)")
+}
 let towers = TowerWatcher(roundData: roundData, library: spriteLibrary)
 let harvester = SpriteHarvester(roundData: roundData, library: spriteLibrary)
 let model = IncomeModel(roundData: roundData)
@@ -345,7 +357,11 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
         lines.append(OverlayLine(text: "all towers priced from the learned library", style: .dim))
     }
     // The bound firing is a statement about the census, not about them.
-    if b.towerClips > 0 {
+    if b.impossibleCensusCycles > 0 {
+        // Stronger than clipping and worth saying differently: this many towers
+        // cannot exist at ANY price, so the count itself is wrong.
+        lines.append(OverlayLine(text: "\(b.buildCount) sites but only \(b.maxAffordableSites) affordable at $\(PriceTable.minPaidCost) each — census over-reading (\(b.impossibleCensusCycles) cycles)", style: .warn))
+    } else if b.towerClips > 0 {
         lines.append(OverlayLine(text: "board valued above affordable — clipped (\(b.towerClips) cycles)", style: .warn))
     }
 
@@ -535,9 +551,9 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     // Detector and model are written here on the capture queue but read from
     // the timer thread, so both stay under the same lock.
     state.lock.lock()
-    detector.noteRound(round)
+    detector.noteRound(round, at: frame.time)
     detector.setAvailable(cards: current.sendCards)
-    let events = detector.update(counts: counts, cards: current.sendCards)
+    let events = detector.update(counts: counts, cards: current.sendCards, at: frame.time)
     let boardNotes = towers.update(frame, round: round)
     // Your own board, watched only to learn what sprites cost. Your cash gives
     // the exact figure, so this is the one place in the whole pipeline where a
@@ -549,7 +565,7 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 
     // Books before valuation: the bound a board is judged against needs this
     // frame's income already in.
-    model.update(snap: current, events: events)
+    model.update(snap: current, events: events, at: frame.time)
     model.noteTowerValuation(towers.valuation)
     let clips = model.books.towerClips
     state.lock.unlock()
@@ -639,6 +655,12 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 func runReplay(_ dir: String) -> Never {
     let manifest = peekManifest(dir)
     var timed: [(file: String, t: Double)]
+    let censusLog = opts.censusLog.flatMap(CensusLog.init(path:))
+    if opts.censusLog != nil && censusLog == nil {
+        print("could not open census log at \(opts.censusLog!)"); exit(1)
+    }
+    // Closed explicitly before the exit below, not with `defer` — this function
+    // returns Never and ends in exit(), which does not unwind.
 
     if let m = manifest, !m.frames.isEmpty {
         timed = m.frames.map { ($0.file, $0.t) }.sorted { $0.1 < $1.1 }
@@ -728,15 +750,15 @@ func runReplay(_ dir: String) -> Never {
 
         let counts = detector.scan(frame)
         let snap = hud.read(cg)
-        if let r = snap.round { detector.noteRound(r) }
+        if let r = snap.round { detector.noteRound(r, at: frame.time) }
         detector.setAvailable(cards: snap.sendCards)
-        let events = detector.update(counts: counts, cards: snap.sendCards)
+        let events = detector.update(counts: counts, cards: snap.sendCards, at: frame.time)
         let boardNotes = towers.update(frame, round: snap.round ?? 0)
         if let c = snap.myCash, let e = snap.myEco {
             harvester.observe(cash: c, eco: e, at: frame.time)
         }
         let learnNotes = harvester.update(frame, round: snap.round ?? 0)
-        model.update(snap: snap, events: events)
+        model.update(snap: snap, events: events, at: frame.time)
         model.noteTowerValuation(towers.valuation)
 
         let cards = snap.sendCards
@@ -752,17 +774,23 @@ func runReplay(_ dir: String) -> Never {
         if !cards.isEmpty { print("  cards: \(cards)") }
         if !seen.isEmpty  { print("  track: \(seen)") }
         func census(_ who: String, _ t: BoardWatcher.Trace) -> String? {
-            guard t.absorbed > 0 || t.poolSize > 0 || t.sites > 0 else { return nil }
-            var s = "  \(who): absorbed=\(t.absorbed) pool=\(t.poolSize)"
-            if t.blobs > 0 { s += " blobs=\(t.blobs)/\(t.blobsPlausible) plausible" }
-            if t.rejectedTexture > 0 { s += " -\(t.rejectedTexture) flat" }
-            if t.rejectedNearby > 0 { s += " -\(t.rejectedNearby) dup" }
+            guard t.blobs > 0 || t.sites > 0 else { return nil }
+            var s = "  \(who): blobs=\(t.blobs)"
+            if t.rejectedNearby > 0 { s += " (\(t.rejectedNearby) matched existing)" }
             s += " sites=\(t.sites) confirmed=\(t.confirmed)"
-            if !t.armed { s += " (settling)" }
+            // Occupancy is the health check on the plate: a board reading as
+            // mostly occupied means the plate is stale, not that the board is
+            // full of towers.
+            s += String(format: " occupied=%.1f%%", t.occupiedFraction * 100)
+            if !t.armed { s += " (no plate yet)" }
             return s
         }
         if let l = census("theirs", towers.trace) { print(l) }
         if let l = census("mine  ", harvester.trace) { print(l) }
+        censusLog?.write(CensusLog.record(
+            file: f, t: frame.time, round: snap.round,
+            side: Regions.latched ? Regions.mySide.rawValue : nil,
+            towers: towers, harvester: harvester, library: spriteLibrary))
         for n in boardNotes { print("  \(n)") }
         for n in learnNotes { print("  \(n)") }
         for e in events { print("  >> SEND \(e.sends)x \(e.type.display) conf=\(String(format: "%.2f", e.confidence))") }
@@ -777,13 +805,15 @@ func runReplay(_ dir: String) -> Never {
     into sends     \(formatMoney(b.sendSpend))
     into towers    \(formatMoney(b.towerSpend))  (\(b.buildCount) on board, \(b.towerSitesUnpriced) unpriced)
     board valued   \(formatMoney(b.towerSpendRaw))  (before the affordability bound, \(b.towerClips) clips)
-    sprite library \(spriteLibrary.count) priced appearances
+    census floor   \(formatMoney(b.censusFloorSpend))  (\(b.buildCount) sites x $\(PriceTable.minPaidCost) minimum, \(b.impossibleCensusCycles) cycles above the ceiling)
+    sprite library \(spriteLibrary.count) priced appearances\(spriteLibrary.rejectedLearns > 0 ? ", \(spriteLibrary.rejectedLearns) learns rejected as impossible" : "")
     scene changes  \(towers.sceneChanges)
     generated      \(formatMoney(b.totalGenerated))
     cash           \(formatMoney(b.cash))
     cash ceiling   \(formatMoney(b.cashCeiling))
     eco tick       \(String(format: "%.1fs @ %.2f $/eco", model.calibrator.period, model.calibrator.payoutRatio)) (\(model.calibrator.ticksSeen) ticks, calibrated=\(model.calibrator.calibrated))
     """)
+    censusLog?.close()
     exit(0)
 }
 
@@ -792,13 +822,21 @@ func runScanCash(_ dir: String) -> Never {
     guard let m = peekManifest(dir) else {
         print("no manifest in \(dir) — cash scan needs frame times"); exit(1)
     }
-    print("file,t,cash")
+    // Cash alone cannot tell a tower from a send — both take money out. Eco is
+    // what separates them, so the scan reads the whole top bar.
+    if let side = m.side.flatMap(PlayerSide.init(rawValue:)) {
+        Regions.forceSide(side, topBarMirrors: m.topBarMirrors)
+    }
+    print("file,t,cash,eco,round")
     for e in m.frames.sorted(by: { $0.t < $1.t }) {
         let url = URL(fileURLWithPath: dir).appendingPathComponent(e.file)
         guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
               let cg = CGImageSourceCreateImageAtIndex(src, 0, nil) else { continue }
-        let cash = hud.cashOnly(cg).map(String.init) ?? ""
-        print("\(e.file),\(String(format: "%.3f", e.t)),\(cash)")
+        let snap = hud.read(cg)
+        let cash = snap.myCash.map(String.init) ?? ""
+        let eco = snap.myEco.map { String(format: "%.0f", $0) } ?? ""
+        let round = snap.round.map(String.init) ?? ""
+        print("\(e.file),\(String(format: "%.3f", e.t)),\(cash),\(eco),\(round)")
     }
     exit(0)
 }

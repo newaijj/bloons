@@ -12,6 +12,14 @@
 //   - A type the round DOES schedule can still be sent. That case is caught by
 //     comparing the observed count against the count the round schedules, and
 //     treating a large excess as sends — a weaker signal, reported as such.
+//
+// How far into the round it is decides both of those: which types the round has
+// started spawning, and how many of them it should have put on the track by
+// now. That elapsed time is measured in RECORDED SECONDS off `Frame.time`, as
+// `TrackScanner` measures absorption — the round clock has to advance with the
+// frames, not with the process. Off the wall clock, a replay was asking the
+// round table what should be on screen 300s in while looking at pixels from
+// round 3, and the answer moved between runs of the same corpus.
 
 import Foundation
 import CoreGraphics
@@ -21,7 +29,8 @@ struct SendEvent {
     let sends: Int
     let confidence: Double   // 0-1; unscheduled types score high, excess-of-expected low
     let round: Int
-    let at: Date
+    /// Recorded seconds since the first frame, not wall-clock time.
+    let at: Double
 }
 
 final class SendDetector {
@@ -41,7 +50,11 @@ final class SendDetector {
     private var bursts: [BloonType: Burst] = [:]
 
     private var currentRound = 0
-    private var roundStart = Date()
+    /// Frame time the current round was first seen at, in recorded seconds.
+    /// Zero until a round is noted, which is the start of the session — the
+    /// same thing the wall-clock version defaulted to, and harmless because
+    /// round 0 is not in the round table and so schedules nothing.
+    private var roundStart: Double = 0
 
     /// Samples one bloon occupies after grid subsampling and typical occlusion.
     /// Scaled from frame width; approximate, and the reason quantity carries a
@@ -70,10 +83,10 @@ final class SendDetector {
         lastCounts = [:]
     }
 
-    func noteRound(_ round: Int) {
+    func noteRound(_ round: Int, at now: Double) {
         guard round != currentRound else { return }
         currentRound = round
-        roundStart = Date()
+        roundStart = now
         bursts.removeAll()
     }
 
@@ -117,10 +130,11 @@ final class SendDetector {
     }
 
     /// Fold this frame's counts into burst state and emit completed sends.
-    func update(counts: [BloonType: Int], cards: [SendCard]) -> [SendEvent] {
-        let elapsed = Date().timeIntervalSince(roundStart)
+    /// `now` is the frame's own timestamp in recorded seconds.
+    func update(counts: [BloonType: Int], cards: [SendCard], at now: Double) -> [SendEvent] {
+        let elapsed = now - roundStart
         let expectedNow = roundData.expectedTypes(currentRound, elapsed: elapsed)
-        let scheduledCount = scheduledCounts()
+        let scheduledCount = scheduledCounts(elapsed: elapsed)
         var events: [SendEvent] = []
 
         let presenceFloor = Int(samplesPerBloon * 0.8)
@@ -156,7 +170,7 @@ final class SendDetector {
                         sends: implied - b.credited,
                         confidence: b.scheduled ? 0.45 : 0.85,
                         round: currentRound,
-                        at: Date()))
+                        at: now))
                     b.credited = implied
                 }
                 bursts[type] = b
@@ -170,10 +184,10 @@ final class SendDetector {
         return events
     }
 
-    /// How many of each type this round has spawned so far.
-    private func scheduledCounts() -> [BloonType: Int] {
+    /// How many of each type this round has spawned so far, `elapsed` recorded
+    /// seconds into it.
+    private func scheduledCounts(elapsed: Double) -> [BloonType: Int] {
         guard let entry = roundData.entry(currentRound) else { return [:] }
-        let elapsed = Date().timeIntervalSince(roundStart)
         var out: [BloonType: Int] = [:]
         for g in entry.groups {
             guard let t = g.type else { continue }

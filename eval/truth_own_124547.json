@@ -1,0 +1,90 @@
+{
+  "source": "eval/hud_124547.csv",
+  "frames": 1112,
+  "frames_with_cash": 976,
+  "believed_levels": 145,
+  "purchases": [
+    {
+      "t": 50.769,
+      "cost": 450,
+      "round": 1,
+      "file": "f000050769.png",
+      "cash_before": 900,
+      "cash_after": 450
+    },
+    {
+      "t": 59.217,
+      "cost": 325,
+      "round": 1,
+      "file": "f000059217.png",
+      "cash_before": 489,
+      "cash_after": 164
+    },
+    {
+      "t": 80.056,
+      "cost": 198,
+      "round": 2,
+      "file": "f000080056.png",
+      "cash_before": 565,
+      "cash_after": 367
+    },
+    {
+      "t": 116.006,
+      "cost": 982,
+      "round": 3,
+      "file": "f000116006.png",
+      "cash_before": 1141,
+      "cash_after": 159
+    },
+    {
+      "t": 130.183,
+      "cost": 400,
+      "round": 4,
+      "file": "f000130183.png",
+      "cash_before": 634,
+      "cash_after": 234
+    },
+    {
+      "t": 167.938,
+      "cost": 325,
+      "round": 5,
+      "file": "f000167938.png",
+      "cash_before": 659,
+      "cash_after": 334
+    },
+    {
+      "t": 215.365,
+      "cost": 480,
+      "round": 7,
+      "file": "f000215365.png",
+      "cash_before": 510,
+      "cash_after": 30
+    },
+    {
+      "t": 267.599,
+      "cost": 1300,
+      "round": 10,
+      "file": "f000267599.png",
+      "cash_before": 1715,
+      "cash_after": 415
+    },
+    {
+      "t": 268.501,
+      "cost": 400,
+      "round": 11,
+      "file": "f000268501.png",
+      "cash_before": 415,
+      "cash_after": 15
+    },
+    {
+      "t": 296.285,
+      "cost": 2690,
+      "round": 12,
+      "file": "f000296285.png",
+      "cash_before": 2693,
+      "cash_after": 3
+    }
+  ],
+  "sends_excluded": 30,
+  "drops_skipped_no_eco": 0
+}

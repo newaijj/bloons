@@ -23,32 +23,45 @@
 // total 5x larger than the opponent's entire possible income. A rising
 // `clippedBuilds` now says the detector is over-firing, in the output, where it
 // can be seen.
+//
+// Every interval in here — the tick period fitted from your cash jumps, the
+// window that merges one tick seen twice, the elapsed time the payouts are
+// charged against — is measured in RECORDED SECONDS off `Frame.time`, the same
+// discipline `TrackScanner` documents for absorption. This model is almost
+// entirely made of durations, so reading them from the wall clock meant a
+// replay was pricing the opponent's eco off how fast the machine could decode
+// PNGs: the same binary over the same corpus produced a 4.8s tick on one run
+// and 5.0s on the next, and $19.6k of income against $19.7k, drifting with
+// whatever else the machine was doing. Nothing downstream could be compared
+// before and after a change, because the baseline moved on its own.
 
 import Foundation
 
 struct EcoTick {
-    let at: Date
+    /// Recorded seconds since the first frame, not wall-clock time.
+    let at: Double
     let payout: Double
     let ecoAtTick: Double
 }
 
 /// Learns the eco tick period and payout ratio from your own cash trajectory.
 final class EcoCalibrator {
-    private var samples: [(t: Date, cash: Int, eco: Double)] = []
+    private var samples: [(t: Double, cash: Int, eco: Double)] = []
     private var ticks: [EcoTick] = []
 
     private(set) var period: Double = 6.0      // seconds; 4.2 in Speed Battles
     private(set) var payoutRatio: Double = 1.0 // cash per point of eco, per tick
     private(set) var calibrated = false
 
-    func observe(cash: Int, eco: Double) {
-        let now = Date()
+    /// `now` is the frame's own timestamp in recorded seconds — see the note at
+    /// the top of the file for why this cannot be `Date()`.
+    func observe(cash: Int, eco: Double, at now: Double) {
         if let last = samples.last {
             let jump = cash - last.cash
             // An eco tick is a discrete upward step. Pops trickle; spending is
             // negative. Require the step to clear both noise and pop income.
             if jump > 20, last.eco > 0 {
-                if let lastTick = ticks.last, now.timeIntervalSince(lastTick.at) < 1.5 {
+                if let lastTick = ticks.last, now - lastTick.at < 1.5 {
                     // Same tick seen twice across adjacent samples; keep the larger.
                     if Double(jump) > lastTick.payout {
                         ticks[ticks.count - 1] = EcoTick(at: lastTick.at, payout: Double(jump), ecoAtTick: last.eco)
@@ -69,7 +82,7 @@ final class EcoCalibrator {
         // Period: median gap between consecutive ticks.
         var gaps: [Double] = []
         for i in 1..<ticks.count {
-            let g = ticks[i].at.timeIntervalSince(ticks[i - 1].at)
+            let g = ticks[i].at - ticks[i - 1].at
             if g > 1.0, g < 20.0 { gaps.append(g) }
         }
         if gaps.count >= 2 { period = median(gaps) }
@@ -105,6 +118,21 @@ struct OpponentBooks {
     /// Census cycles where the affordability bound bit. Sustained clipping says
     /// the census is over-reading, not that they are broke.
     var towerClips: Int = 0
+    /// What the census's site count costs if every site were the cheapest tower
+    /// in the game, bought at the deepest village discount — $80. Nothing about
+    /// the learned pricing enters this, which is what makes it a test of the
+    /// detector rather than of the library.
+    var censusFloorSpend: Double = 0
+    /// Cycles where even that floor exceeded what they could possibly have
+    /// earned. This is a strictly stronger complaint than `towerClips`: clipping
+    /// can mean the fallback price is too high, but a floor breach cannot — it
+    /// says the census is reporting more SITES than any board could hold at any
+    /// price, so the surplus is false positives and nothing else.
+    var impossibleCensusCycles: Int = 0
+    /// Largest number of sites the ceiling could ever have paid for, at the
+    /// moment of the worst breach. The gap against `buildCount` is roughly how
+    /// many phantom sites the detector is carrying.
+    var maxAffordableSites: Int = 0
     /// Sites priced from the learned sprite library, versus sites counted at a
     /// fallback estimate. The second number is how much of the tower figure is
     /// still guesswork.
@@ -143,7 +171,8 @@ final class IncomeModel {
     private(set) var baseCash: Int?
     private(set) var baseEco: Double?
 
-    private var lastTickAt: Date?
+    /// Recorded seconds, off `Frame.time`.
+    private var lastTickAt: Double?
     private var completedRounds = Set<Int>()
     private var currentRound = 0
     private var sendLog: [SendEvent] = []
@@ -186,12 +215,16 @@ final class IncomeModel {
         books.popIncome = 0
     }
 
-    func update(snap: HUDSnapshot, events: [SendEvent]) {
+    /// `now` is the capture time of the frame this snapshot was read from, in
+    /// recorded seconds. Live it advances at the capture rate; on replay it
+    /// advances at the rate the corpus was recorded at, which is what makes two
+    /// replays of one corpus produce the same books.
+    func update(snap: HUDSnapshot, events: [SendEvent], at now: Double) {
         if let cards = Optional(snap.sendCards), !cards.isEmpty {
             for c in cards { cardTable[c.type] = c }
         }
         if let cash = snap.myCash, let eco = snap.myEco {
-            calibrator.observe(cash: cash, eco: eco)
+            calibrator.observe(cash: cash, eco: eco, at: now)
         }
         seedIfNeeded(snap)
         guard isSeeded else { return }
@@ -209,12 +242,11 @@ final class IncomeModel {
 
         // Pay them on the same tick cadence we measured on our own side.
         let period = calibrator.period
-        let now = Date()
         if let last = lastTickAt {
-            if now.timeIntervalSince(last) >= period {
-                let n = floor(now.timeIntervalSince(last) / period)
+            if now - last >= period {
+                let n = floor((now - last) / period)
                 books.ecoIncome += books.eco * calibrator.payoutRatio * n
-                lastTickAt = last.addingTimeInterval(period * n)
+                lastTickAt = last + period * n
             }
         } else {
             lastTickAt = now
@@ -262,6 +294,16 @@ final class IncomeModel {
         books.towerSitesPriced = v.pricedSites
         books.towerSitesUnpriced = v.unpricedSites
         if books.towerSpend < asked - 0.5 { books.towerClips += 1 }
+
+        // Same bound, applied to the count instead of the valuation. Every site
+        // costs at least the cheapest tower in the game, so this holds whatever
+        // the library does or does not know — which is what makes it a test of
+        // the detector rather than of the pricing.
+        books.censusFloorSpend = Double(PriceTable.floorSpend(sites: v.sites))
+        if books.censusFloorSpend > books.cashCeiling {
+            books.impossibleCensusCycles += 1
+            books.maxAffordableSites = Int(books.cashCeiling) / PriceTable.minPaidCost
+        }
     }
 
     /// Whether they can cover a price, on the best estimate of what they hold.

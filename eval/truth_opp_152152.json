@@ -1,0 +1,53 @@
+{
+  "session": "20260816T152152",
+  "board": "opponent (right half, frame x 1319..2369, y 174..1574)",
+  "map": "desert/oasis — bright, low-relief, different from 124547's temple map",
+  "opponent": "PERSIAN",
+  "outcome": "user won; the match ends before t=295, which is the victory screen",
+  "method": "read by eye off tools/board_crop.swift gridded output, +/-20px, score with --tol 90",
+  "why_this_set_matters": [
+    "The blue wizard and the red hero sit ~105px apart and are present at ALL four checkpoints, so this session carries four independent observations of the adjacent-tower merge case that 124547 only had two of.",
+    "PARAMETERS ARE FROZEN. This session is a replication set: nothing was tuned on it and nothing may be. Any threshold changed after seeing these numbers stops being evidence."
+  ],
+  "caveats": [
+    "Only 3 unique opponent towers all match — the opponent lost early and never built out. 11 tower-presences over 4 checkpoints, so the aggregate is even weaker here than on 124547 and only large effects are readable.",
+    "The red hero is firing in most frames (visible muzzle flash), which is the flicker-rejection failure mode from the previous run."
+  ],
+  "checkpoints": [
+    {
+      "t": 80.0,
+      "note": "two towers, adjacent; dense red+blue bloon stream across the path below them",
+      "towers": [
+        {"cx": 1784, "cy": 914, "id": "blue_wizard"},
+        {"cx": 1889, "cy": 904, "id": "red_hero"}
+      ]
+    },
+    {
+      "t": 140.0,
+      "note": "gunner added lower left; hero firing",
+      "towers": [
+        {"cx": 1784, "cy": 914, "id": "blue_wizard"},
+        {"cx": 1889, "cy": 904, "id": "red_hero"},
+        {"cx": 1649, "cy": 1069, "id": "gunner"}
+      ]
+    },
+    {
+      "t": 200.0,
+      "note": "unchanged board",
+      "towers": [
+        {"cx": 1784, "cy": 914, "id": "blue_wizard"},
+        {"cx": 1889, "cy": 904, "id": "red_hero"},
+        {"cx": 1649, "cy": 1069, "id": "gunner"}
+      ]
+    },
+    {
+      "t": 260.0,
+      "note": "unchanged board; hero firing, a black bloon on the path to the right",
+      "towers": [
+        {"cx": 1784, "cy": 914, "id": "blue_wizard"},
+        {"cx": 1889, "cy": 904, "id": "red_hero"},
+        {"cx": 1649, "cy": 1069, "id": "gunner"}
+      ]
+    }
+  ]
+}

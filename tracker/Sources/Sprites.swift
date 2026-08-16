@@ -92,6 +92,12 @@ struct SpriteEntry: Codable {
 /// gets past the towers you happened to build in the first two minutes.
 final class SpriteLibrary {
     private(set) var entries: [SpriteEntry] = []
+    /// Entries dropped at load for holding a price no legal board could produce,
+    /// and learn attempts rejected for the same reason. Both are reported rather
+    /// than swallowed: a rejection means the harvester paired a cash move with
+    /// the wrong board change, and that is a bug worth seeing, not a tidy-up.
+    private(set) var purgedAtLoad: [String] = []
+    private(set) var rejectedLearns = 0
     private let path: String
     /// Below this distance two appearances are considered the same thing.
     ///
@@ -111,7 +117,18 @@ final class SpriteLibrary {
         self.path = path
         if let d = FileManager.default.contents(atPath: path),
            let e = try? JSONDecoder().decode([SpriteEntry].self, from: d) {
-            entries = e
+            // The library persists across matches, so one bad pairing survives
+            // every launch until something removes it. Bounds are the published
+            // ones (PriceTable) — a stored price outside them is not a debatable
+            // estimate, it is arithmetic that cannot have happened.
+            entries = e.filter {
+                guard PriceTable.isPlausibleCumulative($0.cumulativeCost) else {
+                    purgedAtLoad.append("$\($0.cumulativeCost) (\($0.learnedNote), seen \($0.timesSeen)x)")
+                    return false
+                }
+                return true
+            }
+            if !purgedAtLoad.isEmpty { save() }
         }
     }
 
@@ -128,10 +145,25 @@ final class SpriteLibrary {
         return (b.0, b.1, b.2)
     }
 
+    enum LearnOutcome {
+        case learned
+        /// The price is outside what any legal board could produce, so the cash
+        /// move was paired with the wrong board change. Reported, never stored.
+        case rejected(reason: String)
+    }
+
     /// Record an appearance and what it cost in total. An existing entry is
     /// averaged into rather than replaced, so one noisy crop cannot poison a
     /// price that many observations agree on.
-    func learn(_ d: SpriteDescriptor, cumulativeCost: Int, note: String) {
+    @discardableResult
+    func learn(_ d: SpriteDescriptor, cumulativeCost: Int, note: String) -> LearnOutcome {
+        guard PriceTable.isPlausibleCumulative(cumulativeCost) else {
+            rejectedLearns += 1
+            let bound = cumulativeCost < PriceTable.minPaidCost
+                ? "below the $\(PriceTable.minPaidCost) cheapest possible purchase (\(PriceTable.minTowerCost) less max village discount)"
+                : "above the $\(PriceTable.maxLegalCumulative) dearest legal site"
+            return .rejected(reason: "$\(cumulativeCost) is \(bound)")
+        }
         if let m = match(d) {
             var e = entries[m.index]
             let n = Double(e.timesSeen)
@@ -143,6 +175,7 @@ final class SpriteLibrary {
                                        timesSeen: 1, learnedNote: note))
         }
         save()
+        return .learned
     }
 
     private func save() {

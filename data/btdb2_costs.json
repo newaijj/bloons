@@ -1,0 +1,2768 @@
+{
+ "_source": "Upgrade costs read directly from the in-game tower menu (INGAME COST field), Battles 2 v4.13, 2026-08-16. Base tower costs still from Blooncyclopedia and NOT yet verified in-game.",
+ "_retrieved": "2026-08-16",
+ "_game_version": "4.13",
+ "_verification": "330/330 upgrades read in-game. 324 matched Blooncyclopedia exactly; 5 slots where the wiki carries a superseded duplicate were disambiguated; 1 (Monkeyopolis) is a formula the wiki records as a flat number. Base costs: 3 of 22 (Dart 200, Tack 280, Bomb 525) verified on the in-match shop panel, all matching the wiki; the other 19 remain wiki-sourced.",
+ "_caveats": [
+  "List prices. Monkey Village path 3 tier 1 (Monkey Business) gives 5% off monkeys and upgrades of tier <=3 in radius; tier 2 (Monkey Commerce) adds 5% and stacks with up to 2 other villages.",
+  "Wiki lags live balance patches; re-pull before trusting exact values.",
+  "Monkey Village Monkeyopolis costs 20000 + 5000 x (villages absorbed) \u2014 not a constant.",
+  "Banana Farm Quality Soil (p3t1) makes that farm's path 1 and 2 upgrades 15% cheaper.",
+  "Base tower costs below are wiki-sourced; the tower menu does not expose them. Read them off the in-match shop panel to verify."
+ ],
+ "towers": {
+  "Alchemist": {
+   "cost": 550,
+   "category": "Magic",
+   "source": "wiki, unverified"
+  },
+  "Banana Farm": {
+   "cost": 1000,
+   "category": "Support",
+   "source": "wiki, unverified"
+  },
+  "Bomb Shooter": {
+   "cost": 525,
+   "category": "Primary",
+   "source": "in-game v4.13 shop panel"
+  },
+  "Boomerang Monkey": {
+   "cost": 325,
+   "category": "Primary",
+   "source": "wiki, unverified"
+  },
+  "Dart Monkey": {
+   "cost": 200,
+   "category": "Primary",
+   "source": "in-game v4.13 shop panel"
+  },
+  "Dartling Gunner": {
+   "cost": 800,
+   "category": "Military",
+   "source": "wiki, unverified"
+  },
+  "Druid": {
+   "cost": 425,
+   "category": "Magic",
+   "source": "wiki, unverified"
+  },
+  "Engineer Monkey": {
+   "cost": 400,
+   "category": "Support",
+   "source": "wiki, unverified"
+  },
+  "Glue Gunner": {
+   "cost": 100,
+   "category": "Primary",
+   "source": "wiki, unverified"
+  },
+  "Heli Pilot": {
+   "cost": 800,
+   "category": "Military",
+   "source": "wiki, unverified"
+  },
+  "Ice Monkey": {
+   "cost": 450,
+   "category": "Primary",
+   "source": "wiki, unverified"
+  },
+  "Monkey Ace": {
+   "cost": 750,
+   "category": "Military",
+   "source": "wiki, unverified"
+  },
+  "Monkey Buccaneer": {
+   "cost": 500,
+   "category": "Military",
+   "source": "wiki, unverified"
+  },
+  "Monkey Sub": {
+   "cost": 325,
+   "category": "Military",
+   "source": "wiki, unverified"
+  },
+  "Monkey Village": {
+   "cost": 1000,
+   "category": "Support",
+   "source": "wiki, unverified"
+  },
+  "Mortar Monkey": {
+   "cost": 700,
+   "category": "Military",
+   "source": "wiki, unverified"
+  },
+  "Ninja Monkey": {
+   "cost": 350,
+   "category": "Magic",
+   "source": "wiki, unverified"
+  },
+  "Sniper Monkey": {
+   "cost": 300,
+   "category": "Military",
+   "source": "wiki, unverified"
+  },
+  "Spike Factory": {
+   "cost": 600,
+   "category": "Support",
+   "source": "wiki, unverified"
+  },
+  "Super Monkey": {
+   "cost": 2000,
+   "category": "Magic",
+   "source": "wiki, unverified"
+  },
+  "Tack Shooter": {
+   "cost": 280,
+   "category": "Primary",
+   "source": "in-game v4.13 shop panel"
+  },
+  "Wizard Monkey": {
+   "cost": 300,
+   "category": "Magic",
+   "source": "wiki, unverified"
+  }
+ },
+ "upgrades": [
+  {
+   "tower": "Alchemist",
+   "path": 1,
+   "tier": 1,
+   "name": "Larger Potions",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 1,
+   "tier": 2,
+   "name": "Acidic Mixture Dip",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 1,
+   "tier": 3,
+   "name": "Berserker Brew",
+   "cost": 1650,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 1,
+   "tier": 4,
+   "name": "Stronger Stimulant",
+   "cost": 2800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 1,
+   "tier": 5,
+   "name": "Permanent Brew",
+   "cost": 55000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 2,
+   "tier": 1,
+   "name": "Stronger Acid",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 2,
+   "tier": 2,
+   "name": "Perishing Potions",
+   "cost": 475,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 2,
+   "tier": 3,
+   "name": "Unstable Concoction",
+   "cost": 4000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 2,
+   "tier": 4,
+   "name": "Transforming Tonic",
+   "cost": 4500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 2,
+   "tier": 5,
+   "name": "Total Transformation",
+   "cost": 45000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 3,
+   "tier": 1,
+   "name": "Faster Throwing",
+   "cost": 550,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 3,
+   "tier": 2,
+   "name": "Acid Pool",
+   "cost": 450,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 3,
+   "tier": 3,
+   "name": "Lead to Gold",
+   "cost": 1000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 3,
+   "tier": 4,
+   "name": "Rubber to Gold",
+   "cost": 2500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Alchemist",
+   "path": 3,
+   "tier": 5,
+   "name": "Bloon Master Alchemist",
+   "cost": 40000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 1,
+   "tier": 1,
+   "name": "Increased Production",
+   "cost": 550,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 1,
+   "tier": 2,
+   "name": "Greater Production",
+   "cost": 550,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 1,
+   "tier": 3,
+   "name": "Banana Plantation",
+   "cost": 2700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 1,
+   "tier": 4,
+   "name": "Banana Research Facility",
+   "cost": 16000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 1,
+   "tier": 5,
+   "name": "Banana Central",
+   "cost": 66000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 2,
+   "tier": 1,
+   "name": "Long Life Bananas",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 2,
+   "tier": 2,
+   "name": "Valuable Bananas",
+   "cost": 700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 2,
+   "tier": 3,
+   "name": "Monkey Bank",
+   "cost": 4800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 2,
+   "tier": 4,
+   "name": "IMF loan",
+   "cost": 8000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 2,
+   "tier": 5,
+   "name": "Monkey-Nomics",
+   "cost": 45000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 3,
+   "tier": 1,
+   "name": "Quality Soil",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 3,
+   "tier": 2,
+   "name": "Banana Salvage",
+   "cost": 240,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 3,
+   "tier": 3,
+   "name": "Marketplace",
+   "cost": 2800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 3,
+   "tier": 4,
+   "name": "Central Market",
+   "cost": 13000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Banana Farm",
+   "path": 3,
+   "tier": 5,
+   "name": "Monkey Wall Street",
+   "cost": 46000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 1,
+   "tier": 1,
+   "name": "Bigger Bombs",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 1,
+   "tier": 2,
+   "name": "Heavy Bombs",
+   "cost": 650,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 1,
+   "tier": 3,
+   "name": "Really Big Bombs",
+   "cost": 1200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 1,
+   "tier": 4,
+   "name": "Bloon Impact",
+   "cost": 3600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 1,
+   "tier": 5,
+   "name": "Bloon Crush",
+   "cost": 55000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 2,
+   "tier": 1,
+   "name": "Faster Reload",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 2,
+   "tier": 2,
+   "name": "Missile Launcher",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 2,
+   "tier": 3,
+   "name": "MOAB Mauler",
+   "cost": 900,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 2,
+   "tier": 4,
+   "name": "MOAB Assassin",
+   "cost": 3200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 2,
+   "tier": 5,
+   "name": "MOAB Eliminator",
+   "cost": 25000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 3,
+   "tier": 1,
+   "name": "Extra Range",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 3,
+   "tier": 2,
+   "name": "Frag Bombs",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 3,
+   "tier": 3,
+   "name": "Cluster Bombs",
+   "cost": 900,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 3,
+   "tier": 4,
+   "name": "Recursive Cluster",
+   "cost": 3200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Bomb Shooter",
+   "path": 3,
+   "tier": 5,
+   "name": "Bomb Blitz",
+   "cost": 38000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Improved Rangs",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Glaives",
+   "cost": 280,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Glaive Ricochet",
+   "cost": 1300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "M.O.A.R Glaives",
+   "cost": 3400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "Glaive Lord",
+   "cost": 30000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Faster Throwing",
+   "cost": 175,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Faster Rangs",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Bionic Boomerang",
+   "cost": 1100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Turbo Charge",
+   "cost": 4500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "Perma Charge",
+   "cost": 33000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Long Range Rangs",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Red Hot Rangs",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Kylie Boomerang",
+   "cost": 1100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "MOAB Press",
+   "cost": 3400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Boomerang Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "MOAB Domination",
+   "cost": 52000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Sharp Shots",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Razor Sharp Shots",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Spike-o-pult",
+   "cost": 450,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "Juggernaut",
+   "cost": 1800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "Ultra-Juggernaut",
+   "cost": 13500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Quick Shots",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Very Quick Shots",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Triple Shot",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Super Monkey Fan Club",
+   "cost": 9000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "Plasma Monkey Fan Club",
+   "cost": 45000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Long Range Darts",
+   "cost": 90,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Enhanced Eyesight",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Crossbow",
+   "cost": 600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "Sharp Shooter",
+   "cost": 2300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dart Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "Crossbow Master",
+   "cost": 27000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 1,
+   "tier": 1,
+   "name": "Focused Firing",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 1,
+   "tier": 2,
+   "name": "Laser Shock",
+   "cost": 600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 1,
+   "tier": 3,
+   "name": "Laser Cannon",
+   "cost": 2800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 1,
+   "tier": 4,
+   "name": "Plasma Accelerator",
+   "cost": 14000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 1,
+   "tier": 5,
+   "name": "Ray of Doom",
+   "cost": 80000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 2,
+   "tier": 1,
+   "name": "Advanced Targeting",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 2,
+   "tier": 2,
+   "name": "Faster Barrel Spin",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 2,
+   "tier": 3,
+   "name": "Hydra Rocket Pods",
+   "cost": 5100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 2,
+   "tier": 4,
+   "name": "Rocket Storm",
+   "cost": 5500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 2,
+   "tier": 5,
+   "name": "M.A.D",
+   "cost": 68000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 3,
+   "tier": 1,
+   "name": "Faster Swivel",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 3,
+   "tier": 2,
+   "name": "Powerful Darts",
+   "cost": 800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 3,
+   "tier": 3,
+   "name": "Buckshot",
+   "cost": 3400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 3,
+   "tier": 4,
+   "name": "Bloon Area Denial System",
+   "cost": 16000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Dartling Gunner",
+   "path": 3,
+   "tier": 5,
+   "name": "Bloon Exclusion Zone",
+   "cost": 50000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 1,
+   "tier": 1,
+   "name": "Hard Thorns",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 1,
+   "tier": 2,
+   "name": "Heart of Thunder",
+   "cost": 1000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 1,
+   "tier": 3,
+   "name": "Druid of the Storm",
+   "cost": 1500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 1,
+   "tier": 4,
+   "name": "Ball Lightning",
+   "cost": 4700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 1,
+   "tier": 5,
+   "name": "Superstorm",
+   "cost": 55000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 2,
+   "tier": 1,
+   "name": "Thorn Swarm",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 2,
+   "tier": 2,
+   "name": "Heart of Oak",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 2,
+   "tier": 3,
+   "name": "Druid of the Jungle",
+   "cost": 700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 2,
+   "tier": 4,
+   "name": "Jungle&#039;s Bounty",
+   "cost": 4000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 2,
+   "tier": 5,
+   "name": "Spirit of the Forest",
+   "cost": 35000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 3,
+   "tier": 1,
+   "name": "Druidic Reach",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 3,
+   "tier": 2,
+   "name": "Heart of Vengeance",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 3,
+   "tier": 3,
+   "name": "Druid of Wrath",
+   "cost": 650,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 3,
+   "tier": 4,
+   "name": "Poplust",
+   "cost": 2500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Druid",
+   "path": 3,
+   "tier": 5,
+   "name": "Avatar of Wrath",
+   "cost": 52000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Sentry Gun",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Faster Engineering",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Sprockets",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "Sentry Expert",
+   "cost": 3250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "Sentry Champion",
+   "cost": 32000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Larger Service Area",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Deconstruction",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Cleansing Foam",
+   "cost": 800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Overclock",
+   "cost": 13500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "Ultraboost",
+   "cost": 100000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Oversize Nails",
+   "cost": 450,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Pin",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Double Gun",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "Bloon Trap",
+   "cost": 3600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Engineer Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "XXXL Trap",
+   "cost": 54000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 1,
+   "tier": 1,
+   "name": "Glue Soak",
+   "cost": 150,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 1,
+   "tier": 2,
+   "name": "Corrosive Glue",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 1,
+   "tier": 3,
+   "name": "Bloon Dissolver",
+   "cost": 2300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 1,
+   "tier": 4,
+   "name": "Bloon Liquefier",
+   "cost": 4500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 1,
+   "tier": 5,
+   "name": "The Bloon Solver",
+   "cost": 19000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 2,
+   "tier": 1,
+   "name": "Bigger Globs",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 2,
+   "tier": 2,
+   "name": "Glue Splatter",
+   "cost": 700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 2,
+   "tier": 3,
+   "name": "Glue Hose",
+   "cost": 2200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 2,
+   "tier": 4,
+   "name": "Glue Strike",
+   "cost": 4000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 2,
+   "tier": 5,
+   "name": "Glue Storm",
+   "cost": 18000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 3,
+   "tier": 1,
+   "name": "Stickier Glue",
+   "cost": 120,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 3,
+   "tier": 2,
+   "name": "Stronger Glue",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 3,
+   "tier": 3,
+   "name": "MOAB Glue",
+   "cost": 3200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 3,
+   "tier": 4,
+   "name": "Relentless Glue",
+   "cost": 3000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Glue Gunner",
+   "path": 3,
+   "tier": 5,
+   "name": "Super Glue",
+   "cost": 28000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 1,
+   "tier": 1,
+   "name": "Quad Darts",
+   "cost": 600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 1,
+   "tier": 2,
+   "name": "Pursuit",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 1,
+   "tier": 3,
+   "name": "Razor Rotors",
+   "cost": 1800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 1,
+   "tier": 4,
+   "name": "Apache Dartship",
+   "cost": 17500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 1,
+   "tier": 5,
+   "name": "Apache Prime",
+   "cost": 45000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 2,
+   "tier": 1,
+   "name": "Bigger Jets",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 2,
+   "tier": 2,
+   "name": "IFR",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 2,
+   "tier": 3,
+   "name": "Downdraft",
+   "cost": 3200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 2,
+   "tier": 4,
+   "name": "Support Chinook",
+   "cost": 7500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 2,
+   "tier": 5,
+   "name": "Special Poperations",
+   "cost": 30000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 3,
+   "tier": 1,
+   "name": "Faster Darts",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 3,
+   "tier": 2,
+   "name": "Faster Firing",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 3,
+   "tier": 3,
+   "name": "MOAB Shove",
+   "cost": 4000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 3,
+   "tier": 4,
+   "name": "Comanche Defense",
+   "cost": 7500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Heli Pilot",
+   "path": 3,
+   "tier": 5,
+   "name": "Comanche Commander",
+   "cost": 34700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Permafrost",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Cold Snap",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Ice Shards",
+   "cost": 2000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "Embrittlement",
+   "cost": 2700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "Super Brittle",
+   "cost": 34000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Enhanced Freeze",
+   "cost": 225,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Deep Freeze",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Arctic Wind",
+   "cost": 2900,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Snowstorm",
+   "cost": 4000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "Absolute Zero",
+   "cost": 18000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Larger Radius",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Re-Freeze",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Cryo Cannon",
+   "cost": 1300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "Icicles",
+   "cost": 2900,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ice Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "Icicle Impale",
+   "cost": 32000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 1,
+   "tier": 1,
+   "name": "Rapid Fire",
+   "cost": 550,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 1,
+   "tier": 2,
+   "name": "Lots More Darts",
+   "cost": 600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 1,
+   "tier": 3,
+   "name": "Fighter Plane",
+   "cost": 1000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 1,
+   "tier": 4,
+   "name": "Operation: Dart Storm",
+   "cost": 3000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 1,
+   "tier": 5,
+   "name": "Sky Shredder",
+   "cost": 40000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 2,
+   "tier": 1,
+   "name": "Exploding Pineapple",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 2,
+   "tier": 2,
+   "name": "Spy Plane",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 2,
+   "tier": 3,
+   "name": "Bomber Ace",
+   "cost": 1100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 2,
+   "tier": 4,
+   "name": "Ground Zero",
+   "cost": 15000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 2,
+   "tier": 5,
+   "name": "Tsar Bomba",
+   "cost": 30000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 3,
+   "tier": 1,
+   "name": "Sharper Darts",
+   "cost": 450,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 3,
+   "tier": 2,
+   "name": "Centered Path",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 3,
+   "tier": 3,
+   "name": "Neva-Miss Targeting",
+   "cost": 2200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 3,
+   "tier": 4,
+   "name": "Spectre",
+   "cost": 24000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Ace",
+   "path": 3,
+   "tier": 5,
+   "name": "Flying Fortress",
+   "cost": 75000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 1,
+   "tier": 1,
+   "name": "Faster Shooting",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 1,
+   "tier": 2,
+   "name": "Double Shot",
+   "cost": 550,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 1,
+   "tier": 3,
+   "name": "Destroyer",
+   "cost": 2200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 1,
+   "tier": 4,
+   "name": "Aircraft Carrier",
+   "cost": 6400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 1,
+   "tier": 5,
+   "name": "Carrier Flagship",
+   "cost": 25000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 2,
+   "tier": 1,
+   "name": "Grape Shot",
+   "cost": 550,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 2,
+   "tier": 2,
+   "name": "Hot Shot",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 2,
+   "tier": 3,
+   "name": "Cannon Ship",
+   "cost": 900,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 2,
+   "tier": 4,
+   "name": "Monkey Pirates",
+   "cost": 5250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 2,
+   "tier": 5,
+   "name": "Pirate Lord",
+   "cost": 21000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 3,
+   "tier": 1,
+   "name": "Long Range",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 3,
+   "tier": 2,
+   "name": "Crow&#039;s Nest",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 3,
+   "tier": 3,
+   "name": "Merchantman",
+   "cost": 2000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 3,
+   "tier": 4,
+   "name": "Favored Trades",
+   "cost": 5300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Buccaneer",
+   "path": 3,
+   "tier": 5,
+   "name": "Trade Empire",
+   "cost": 24000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 1,
+   "tier": 1,
+   "name": "Longer Range",
+   "cost": 130,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 1,
+   "tier": 2,
+   "name": "Advanced Intel",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 1,
+   "tier": 3,
+   "name": "Submerge and Support",
+   "cost": 950,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 1,
+   "tier": 4,
+   "name": "Bloontonium Reactor",
+   "cost": 2800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 1,
+   "tier": 5,
+   "name": "Energizer",
+   "cost": 32000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 2,
+   "tier": 1,
+   "name": "Barbed Darts",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 2,
+   "tier": 2,
+   "name": "Heat-tipped Darts",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 2,
+   "tier": 3,
+   "name": "Ballistic Missile",
+   "cost": 1600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 2,
+   "tier": 4,
+   "name": "First Strike Capability",
+   "cost": 15000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 2,
+   "tier": 5,
+   "name": "Pre-emptive Strike",
+   "cost": 30000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 3,
+   "tier": 1,
+   "name": "Twin Guns",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 3,
+   "tier": 2,
+   "name": "Airburst Darts",
+   "cost": 800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 3,
+   "tier": 3,
+   "name": "Triple Guns",
+   "cost": 800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 3,
+   "tier": 4,
+   "name": "Armor Piercing Darts",
+   "cost": 3200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Sub",
+   "path": 3,
+   "tier": 5,
+   "name": "Sub Commander",
+   "cost": 25000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 1,
+   "tier": 1,
+   "name": "Bigger Radius",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 1,
+   "tier": 2,
+   "name": "Jungle Drums",
+   "cost": 1500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 1,
+   "tier": 3,
+   "name": "Primary Training",
+   "cost": 800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 1,
+   "tier": 4,
+   "name": "Primary Mentoring",
+   "cost": 2500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 1,
+   "tier": 5,
+   "name": "Primary Expertise",
+   "cost": 25000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 2,
+   "tier": 1,
+   "name": "Grow Blocker",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 2,
+   "tier": 2,
+   "name": "Radar Scanner",
+   "cost": 1700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 2,
+   "tier": 3,
+   "name": "Monkey Intelligence Bureau",
+   "cost": 5000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 2,
+   "tier": 4,
+   "name": "Call to Arms",
+   "cost": 23500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 2,
+   "tier": 5,
+   "name": "Homeland Defense",
+   "cost": 45000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 3,
+   "tier": 1,
+   "name": "Monkey Business",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 3,
+   "tier": 2,
+   "name": "Monkey Commerce",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 3,
+   "tier": 3,
+   "name": "Monkeyconomy",
+   "cost": 1500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 3,
+   "tier": 4,
+   "name": "Monkey City",
+   "cost": 7200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Monkey Village",
+   "path": 3,
+   "tier": 5,
+   "name": "Monkeyopolis",
+   "cost": null,
+   "source": "in-game v4.13",
+   "cost_formula": "20000+5000*villages"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Bigger Blast",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Bloon Buster",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Shell Shock",
+   "cost": 1100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "The Big One",
+   "cost": 7300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "The Biggest One",
+   "cost": 28000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Faster Reload",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Rapid Reload",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Heavy Shells",
+   "cost": 800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Artillery Battery",
+   "cost": 8000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "Pop and Awe",
+   "cost": 27000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Dynamic Targeting",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Burny Stuff",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Signal Flare",
+   "cost": 700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "Shattering Shells",
+   "cost": 8500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Mortar Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "Blooncineration",
+   "cost": 40000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Ninja Discipline",
+   "cost": 150,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Sharp Shurikens",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Double Shot",
+   "cost": 700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "Bloonjitsu",
+   "cost": 2750,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "Grandmaster Ninja",
+   "cost": 35000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Distraction",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Counter-Espionage",
+   "cost": 375,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Shinobi Tactics",
+   "cost": 2100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Bloon Sabotage",
+   "cost": 5200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "Grand Saboteur",
+   "cost": 20000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Seeking Shuriken",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Caltrops",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Flash Bomb",
+   "cost": 1800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "Sticky Bomb",
+   "cost": 4600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Ninja Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "Master Bomber",
+   "cost": 40000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Full Metal Jacket",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Large Calibre",
+   "cost": 750,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Deadly Precision",
+   "cost": 2800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "Maim MOAB",
+   "cost": 5000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "Cripple MOAB",
+   "cost": 34000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Night Vision Goggles",
+   "cost": 200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Shrapnel Shot",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Bouncing Bullet",
+   "cost": 2600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Supply Drop",
+   "cost": 5800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "Elite Sniper",
+   "cost": 14000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Fast Firing",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Even Faster Firing",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Semi-Automatic",
+   "cost": 2100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "Full Auto Rifle",
+   "cost": 3800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Sniper Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "Elite Defender",
+   "cost": 14500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 1,
+   "tier": 1,
+   "name": "Bigger Stacks",
+   "cost": 600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 1,
+   "tier": 2,
+   "name": "White Hot Spikes",
+   "cost": 600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 1,
+   "tier": 3,
+   "name": "Spiked Balls",
+   "cost": 2700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 1,
+   "tier": 4,
+   "name": "Spiked Mines",
+   "cost": 9500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 1,
+   "tier": 5,
+   "name": "Super Mines",
+   "cost": 90000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 2,
+   "tier": 1,
+   "name": "Faster Production",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 2,
+   "tier": 2,
+   "name": "Even Faster Production",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 2,
+   "tier": 3,
+   "name": "MOAB SHREDR",
+   "cost": 2500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 2,
+   "tier": 4,
+   "name": "Spike Storm",
+   "cost": 6200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 2,
+   "tier": 5,
+   "name": "Carpet of Spikes",
+   "cost": 40000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 3,
+   "tier": 1,
+   "name": "Long Reach",
+   "cost": 150,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 3,
+   "tier": 2,
+   "name": "Smart Spikes",
+   "cost": 500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 3,
+   "tier": 3,
+   "name": "Long life spikes",
+   "cost": 1200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 3,
+   "tier": 4,
+   "name": "Deadly Spikes",
+   "cost": 3200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Spike Factory",
+   "path": 3,
+   "tier": 5,
+   "name": "Perma-Spike",
+   "cost": 30000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Laser Blasts",
+   "cost": 1400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Plasma Blasts",
+   "cost": 2500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Sun Avatar",
+   "cost": 13000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "Sun Temple",
+   "cost": 80000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "True Sun God",
+   "cost": 200000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Super Range",
+   "cost": 1000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Epic Range",
+   "cost": 1000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Robo Monkey",
+   "cost": 10000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Tech Terror",
+   "cost": 20000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "The Anti-Bloon",
+   "cost": 90000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Knockback",
+   "cost": 3000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Ultravision",
+   "cost": 1200,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Dark Knight",
+   "cost": 4500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "Dark Champion",
+   "cost": 32000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Super Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "Legend of the Night",
+   "cost": 140000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 1,
+   "tier": 1,
+   "name": "Faster Shooting",
+   "cost": 150,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 1,
+   "tier": 2,
+   "name": "Even Faster Shooting",
+   "cost": 400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 1,
+   "tier": 3,
+   "name": "Hot Shots",
+   "cost": 700,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 1,
+   "tier": 4,
+   "name": "Ring of Fire",
+   "cost": 3500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 1,
+   "tier": 5,
+   "name": "Inferno Ring",
+   "cost": 35500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 2,
+   "tier": 1,
+   "name": "Long Range Tacks",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 2,
+   "tier": 2,
+   "name": "Super Range Tacks",
+   "cost": 225,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 2,
+   "tier": 3,
+   "name": "Blade Shooter",
+   "cost": 600,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 2,
+   "tier": 4,
+   "name": "Blade Maelstrom",
+   "cost": 3850,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 2,
+   "tier": 5,
+   "name": "Super Maelstrom",
+   "cost": 15000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 3,
+   "tier": 1,
+   "name": "More Tacks",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 3,
+   "tier": 2,
+   "name": "Even More Tacks",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 3,
+   "tier": 3,
+   "name": "Tack Sprayer",
+   "cost": 450,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 3,
+   "tier": 4,
+   "name": "Overdrive",
+   "cost": 3400,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Tack Shooter",
+   "path": 3,
+   "tier": 5,
+   "name": "The Tack Zone",
+   "cost": 24000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 1,
+   "tier": 1,
+   "name": "Guided Magic",
+   "cost": 100,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 1,
+   "tier": 2,
+   "name": "Arcane Blast",
+   "cost": 250,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 1,
+   "tier": 3,
+   "name": "Arcane Mastery",
+   "cost": 1300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 1,
+   "tier": 4,
+   "name": "Arcane Spike",
+   "cost": 9000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 1,
+   "tier": 5,
+   "name": "Archmage",
+   "cost": 32000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 2,
+   "tier": 1,
+   "name": "Fireball",
+   "cost": 350,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 2,
+   "tier": 2,
+   "name": "Wall of Fire",
+   "cost": 1000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 2,
+   "tier": 3,
+   "name": "Dragon&#039;s Breath",
+   "cost": 3000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 2,
+   "tier": 4,
+   "name": "Summon Phoenix",
+   "cost": 4000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 2,
+   "tier": 5,
+   "name": "Wizard Lord Phoenix",
+   "cost": 50000,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 3,
+   "tier": 1,
+   "name": "Intense Magic",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 3,
+   "tier": 2,
+   "name": "Monkey Sense",
+   "cost": 300,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 3,
+   "tier": 3,
+   "name": "Shimmer",
+   "cost": 1500,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 3,
+   "tier": 4,
+   "name": "Necromancer",
+   "cost": 2800,
+   "source": "in-game v4.13"
+  },
+  {
+   "tower": "Wizard Monkey",
+   "path": 3,
+   "tier": 5,
+   "name": "Prince of Darkness",
+   "cost": 28000,
+   "source": "in-game v4.13"
+  }
+ ]
+}

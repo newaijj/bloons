@@ -64,6 +64,17 @@ final class TrackScanner {
     /// How often each sample has been a moving bloon colour. Where the bloons
     /// walk is the track, and towers cannot be built on the track.
     private var bloonHits: [Int] = []
+    /// Samples that land on centre chrome rather than on the board. Skipped
+    /// outright: they never seed a background, never absorb, and never learn a
+    /// path, so nothing downstream can see them.
+    ///
+    /// Both play bands run right up to the divider, and the button cluster
+    /// overhangs each of them by ~6px — persistent, off-path, and sprite-shaped,
+    /// which is precisely the signature a tower is recognised by. Rejecting it
+    /// later would mean teaching the tower gate about chrome; not sampling it at
+    /// all keeps that knowledge in one place. See `Regions.centreChrome`.
+    private var masked: [Bool] = []
+    private var liveSamples = 0
 
     /// Bloon-coloured frames before a sample counts as track rather than
     /// ground. Low enough to learn a path within the first round, high enough
@@ -100,6 +111,7 @@ final class TrackScanner {
         prevR = []; prevG = []; prevB = []
         stableSince = []; stableObs = []
         absorbedEver = []; foregroundNow = []; bloonHits = []
+        masked = []; liveSamples = 0
     }
 
     /// Grid dimensions, so a caller can turn indices into coordinates.
@@ -123,9 +135,11 @@ final class TrackScanner {
         idx < bloonHits.count && bloonHits[idx] >= Self.pathHits
     }
 
-    /// Total samples in the region, so a caller can judge an absorption count
-    /// as a fraction of the board rather than as a bare number.
-    var sampleCount: Int { gridW * gridH }
+    /// Samples actually scanned, so a caller can judge an absorption count as a
+    /// fraction of the board rather than as a bare number. Masked samples are
+    /// excluded — they can never absorb, so counting them would quietly deflate
+    /// every fraction measured against this.
+    var sampleCount: Int { liveSamples }
 
     /// Throw the background model away and reseed from the next frame, without
     /// forgetting where the path runs.
@@ -172,6 +186,20 @@ final class TrackScanner {
             absorbedEver = .init(repeating: false, count: n)
             foregroundNow = .init(repeating: false, count: n)
             bloonHits = .init(repeating: 0, count: n)
+
+            // The mask is geometry, not model state, so it is built here with
+            // the grid and left alone by declareSceneChange().
+            let chrome = Regions.centreChrome.pixels(frame.width, frame.height)
+            masked = .init(repeating: false, count: n)
+            liveSamples = 0
+            for gy in 0..<gh {
+                let py = y0 + gy * sampleStep
+                for gx in 0..<gw {
+                    let m = chrome.contains(CGPoint(x: x0 + gx * sampleStep, y: py))
+                    masked[gy * gw + gx] = m
+                    if !m { liveSamples += 1 }
+                }
+            }
         }
 
         var out = Result()
@@ -179,6 +207,7 @@ final class TrackScanner {
             let py = y0 + gy * sampleStep
             for gx in 0..<gw {
                 let idx = gy * gw + gx
+                if masked[idx] { continue }
                 guard let hsb = frame.hsb(x: x0 + gx * sampleStep, y: py) else { continue }
                 let (r, g, b) = hsb.rgb
 

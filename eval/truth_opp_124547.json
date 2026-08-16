@@ -1,0 +1,55 @@
+{
+  "session": "20260816T124547",
+  "board": "opponent (right half, frame x 1319..2369, y 174..1574)",
+  "method": "read by eye off tools/board_crop.swift output, grid every 100 frame-px with a heavy line every 500",
+  "accuracy": "centres are good to roughly +/-20px, so score with --tol 90 or looser; the point of these labels is whether a tower was FOUND, not sub-pixel localisation",
+  "caveats": [
+    "t=330 is the end-of-match moment (the opponent's GOOD GAME! emote is up), so it may be a transition frame rather than clean play",
+    "the opponent board region overlaps the centre send-queue by about 21px at its inner edge (queue spans frame x 1225..1340, board starts at 1319), so a blob within ~20px of x=1319 may be queue chrome rather than a tower",
+    "identities are my reading of the sprites and are not needed for scoring; only the positions are"
+  ],
+  "checkpoints": [
+    {
+      "t": 60.0,
+      "note": "round 2-ish, dense red bloon column down the path - the exact case where occupancy alone fails",
+      "towers": [
+        {"cx": 2089, "cy": 474, "id": "tack_pink"},
+        {"cx": 1474, "cy": 1369, "id": "bomb_grey"}
+      ]
+    },
+    {
+      "t": 100.0,
+      "note": "second tack has appeared next to the first",
+      "towers": [
+        {"cx": 2094, "cy": 464, "id": "tack_pink_1"},
+        {"cx": 2054, "cy": 549, "id": "tack_pink_2"},
+        {"cx": 1469, "cy": 1374, "id": "bomb_grey"}
+      ]
+    },
+    {
+      "t": 220.0,
+      "note": "both tacks upgraded (pink -> red and blue), a blue tower added top-right, a second bomb added",
+      "towers": [
+        {"cx": 2094, "cy": 469, "id": "tack_red"},
+        {"cx": 2049, "cy": 559, "id": "tack_blue"},
+        {"cx": 2264, "cy": 304, "id": "blue_topright"},
+        {"cx": 1464, "cy": 1384, "id": "bomb_1"},
+        {"cx": 1624, "cy": 1404, "id": "bomb_2"}
+      ]
+    },
+    {
+      "t": 330.0,
+      "note": "end of match; orange tower added top, bombs now four across the bottom",
+      "towers": [
+        {"cx": 2039, "cy": 304, "id": "orange_top"},
+        {"cx": 2264, "cy": 304, "id": "blue_topright"},
+        {"cx": 2094, "cy": 469, "id": "tack_red"},
+        {"cx": 2049, "cy": 559, "id": "tack_blue"},
+        {"cx": 1459, "cy": 1389, "id": "bomb_1"},
+        {"cx": 1599, "cy": 1404, "id": "bomb_2"},
+        {"cx": 1784, "cy": 1414, "id": "bomb_3"},
+        {"cx": 1939, "cy": 1419, "id": "bomb_4"}
+      ]
+    }
+  ]
+}

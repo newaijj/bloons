@@ -39,10 +39,22 @@ final class TowerWatcher {
     /// stays a stated assumption rather than a measured one.
     static var sellRefundRatio = 0.75
 
-    /// Cost assumed for a tower whose appearance is not in the library yet.
-    /// Scaled by blob area against one footprint, which is a weak signal — hence
-    /// `unpricedSites` being reported alongside the total.
-    private static let fallbackBase = 400.0
+    /// Cost assumed for a tower whose appearance is not in the library yet: the
+    /// median base cost of the 22 towers that exist (PriceTable), flat.
+    ///
+    /// It used to be $400 scaled 0.6x–3.0x by blob area, spanning $240–$1200 on
+    /// a relationship nothing had established. Tested against the learned
+    /// library on 2026-08-16: area vs cumulative cost came out at **r = −0.219,
+    /// n = 6** — the wrong sign, and far too few points to read as a real
+    /// negative. So the multiplier was carrying no information and the spread it
+    /// produced was noise dressed as detail. A flat published median is a worse
+    /// estimate of any individual tower and a more honest one of all of them.
+    ///
+    /// n = 6 is not enough to have settled this. The upgrade path is to take the
+    /// prior from the distribution of learned cumulative costs once the library
+    /// is large enough to have one — that is drawn from real play instead of
+    /// from base costs, and it needs no table at all.
+    static var fallbackCost = PriceTable.medianTowerCost
 
     private(set) var valuation = BoardValuation()
     private(set) var sunkFromSells = 0
@@ -66,6 +78,10 @@ final class TowerWatcher {
     var sceneChanges: Int { board.sceneChanges }
     var trace: BoardWatcher.Trace { board.trace }
     var siteCount: Int { board.confirmedSites.count }
+    /// The census itself, for offline scoring. A site count alone cannot be
+    /// scored against ground truth — you need to know WHERE the detector
+    /// thought the towers were to say whether it was right.
+    var sites: [TowerSite] { board.confirmedSites }
 
     /// Scan their board and revalue it. Returns human-readable change notes.
     ///
@@ -109,19 +125,16 @@ final class TowerWatcher {
         valuation = v
     }
 
-    /// Learned price if the appearance is known, otherwise a scaled fallback.
-    private func cost(of s: TowerSite) -> Int {
+    /// Learned price if the appearance is known, otherwise the published prior.
+    func cost(of s: TowerSite) -> Int {
         if let m = library.match(s.descriptor) { return m.entry.cumulativeCost }
-        let d = BoardWatcher.spriteDiameterAt2560
-        let footprint = max(40.0, (d * d / 16.0) * 0.5)
-        let sizeFactor = min(3.0, max(0.6, Double(s.areaSamples) / footprint))
-        return Int(Self.fallbackBase * sizeFactor)
+        return Self.fallbackCost
     }
 
     private func describe(_ s: TowerSite) -> String {
         if let m = library.match(s.descriptor) {
             return "$\(m.entry.cumulativeCost) (learned, d=\(String(format: "%.2f", m.distance)))"
         }
-        return "~$\(cost(of: s)) (unpriced)"
+        return "~$\(cost(of: s)) (unpriced, median prior)"
     }
 }

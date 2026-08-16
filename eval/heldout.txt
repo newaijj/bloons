@@ -1,0 +1,37 @@
+=========== plate_full ===========
+census: 139 frames, 291.7s, side=left
+  sites ever confirmed:  yours 28   theirs 52
+  peak simultaneous:     yours 4   theirs 10
+
+own-board arrival recall  (window -1.0s .. +15.0s)
+  purchases in truth:    4
+  matched by a site:     4   recall 100.0%
+  missed:                0
+  sites matching nothing:24   4.94/min
+  chance recall at 28 random sites: 72.2%
+
+opponent census at 2 checkpoints (tol 90.0px)
+  t= 220.0s  truth  5  detected  5  matched  4
+  t= 330.0s  truth  8  detected  7  matched  6
+  TOTAL  recall 76.9% over 2/2 checkpoints
+         precision 83.3%
+  placement null at the same site counts: median 7.7%, p95 23.1% (300 draws)
+=========== plate_ablation ===========
+census: 139 frames, 291.7s, side=left
+  sites ever confirmed:  yours 28   theirs 51
+  peak simultaneous:     yours 6   theirs 9
+
+own-board arrival recall  (window -1.0s .. +15.0s)
+  purchases in truth:    4
+  matched by a site:     1   recall 25.0%
+  missed:                3
+  sites matching nothing:27   5.55/min
+  chance recall at 28 random sites: 72.2%
+  -> NOT distinguishable from chance
+
+opponent census at 2 checkpoints (tol 90.0px)
+  t= 220.0s  truth  5  detected  5  matched  4
+  t= 330.0s  truth  8  detected  9  matched  6
+  TOTAL  recall 76.9% over 2/2 checkpoints
+         precision 71.4%
+  placement null at the same site counts: median 7.7%, p95 23.1% (300 draws)

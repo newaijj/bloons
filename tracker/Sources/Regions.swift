@@ -9,14 +9,29 @@
 // Only your own cash and eco are ever displayed — the opponent's are not, which
 // is the whole reason the income model exists.
 //
-// MIRRORING. The captured frame is NOT symmetric: there is roughly 155px of
-// dead space at the left edge with no counterpart on the right, where the panel
-// runs flush to the border. So a mirrored region is never computed as
-// `1 - x - w` when a measured partner exists — the paired regions are SWAPPED
-// instead, which is measured truth rather than inference. Arithmetic flipping is
-// used only for UI chrome that has no partner (the send/shop panel, and the
-// top bar if it turns out to mirror), because that chrome is laid out against
-// the window edge rather than against the play area.
+// MIRRORING. The window CHROME is not symmetric: there is roughly 155px of dead
+// space at the left edge with no counterpart on the right, where the panel runs
+// flush to the border. So chrome regions are never computed as `1 - x - w` when
+// a measured partner exists — those pairs are SWAPPED instead, which is measured
+// truth rather than inference.
+//
+// The PLAY AREA is a different matter, and the two were previously conflated.
+// The two boards are exact geometric reflections about the frame's vertical
+// centre: `rx = W - 1 - x`, `dy = 0`, with the axis pinned to one pixel (mean
+// abs luma 7.36 at x=(W-1)/2 against 8.61 one pixel either side and ~21 for any
+// non-mirrored translation, measured on the desert capture). Per-column mirror
+// residual puts the left board's low-residual band at x 204–1241 of 2560 and the
+// centre divider at 1241–1319.
+//
+// The separately measured `myTrack` was therefore WRONG: at 0.5000–0.9102 it
+// began on the divider and clipped ~40px off the board's outer edge. Both boards
+// now derive from one measured band and its exact reflection, so they cannot
+// drift apart again.
+//
+// The reflection is GEOMETRIC ONLY. Directional lighting stays fixed in screen
+// space, so mirroring puts a block's highlight onto its own shadow — on a map
+// with relief the mirror difference is 30-35% and never cancels. Use this to map
+// POSITIONS between boards, never as a background plate.
 
 import Foundation
 import CoreGraphics
@@ -54,8 +69,19 @@ enum Regions {
         static let myName   = HUDRegion(name: "my_name",   rect: CGRect(x: 0.8594, y: 0.0705, width: 0.1289, height: 0.0365))
         static let myQueue  = HUDRegion(name: "my_queue",  rect: CGRect(x: 0.4785, y: 0.1795, width: 0.0449, height: 0.3715))
         static let sendMenu = HUDRegion(name: "send_menu", rect: CGRect(x: 0.9277, y: 0.5038, width: 0.0742, height: 0.1826))
-        static let myTrack  = HUDRegion(name: "my_track",  rect: CGRect(x: 0.5000, y: 0.1102, width: 0.4102, height: 0.8816))
-        static let oppTrack = HUDRegion(name: "opp_track", rect: CGRect(x: 0.0742, y: 0.1102, width: 0.4102, height: 0.8816))
+        /// The LEFT board, measured. The right board is its exact reflection and
+        /// is derived rather than measured a second time — see the header.
+        static let leftTrack  = HUDRegion(name: "left_track",
+                                          rect: CGRect(x: 0.0742, y: 0.1102, width: 0.4102, height: 0.8816))
+        static let rightTrack = reflect(leftTrack, "right_track")
+
+        /// Reflect about the frame's vertical centre. Exact for the play area:
+        /// the axis was measured at x=(W-1)/2 to within one pixel.
+        static func reflect(_ r: HUDRegion, _ name: String) -> HUDRegion {
+            HUDRegion(name: name,
+                      rect: CGRect(x: 1 - r.rect.minX - r.rect.width, y: r.rect.minY,
+                                   width: r.rect.width, height: r.rect.height))
+        }
     }
 
     // MARK: - Resolved orientation
@@ -99,10 +125,15 @@ enum Regions {
 
     // MARK: - Regions
 
-    // Paired regions swap wholesale. Both halves were measured, so a swap
-    // introduces no inference.
-    static var myTrack:  HUDRegion { mirrored ? renamed(M.oppTrack, "my_track")  : M.myTrack }
-    static var oppTrack: HUDRegion { mirrored ? renamed(M.myTrack,  "opp_track") : M.oppTrack }
+    // The play area is symmetric, so a track is named by which side owns it
+    // rather than swapped between two independently measured rectangles. That
+    // is what stopped the pair drifting 40px apart — see the header.
+    static var myTrack:  HUDRegion {
+        renamed(mirrored ? M.leftTrack : M.rightTrack, "my_track")
+    }
+    static var oppTrack: HUDRegion {
+        renamed(mirrored ? M.rightTrack : M.leftTrack, "opp_track")
+    }
     static var myLives:  HUDRegion { mirrored ? renamed(M.oppLives, "my_lives")  : M.myLives }
     static var oppLives: HUDRegion { mirrored ? renamed(M.myLives,  "opp_lives") : M.oppLives }
     static var myName:   HUDRegion { mirrored ? renamed(M.oppName,  "my_name")   : M.myName }
@@ -115,6 +146,32 @@ enum Regions {
     /// Your outgoing queue sits centred ON the divider — its own mirror image.
     /// It does not move with the side.
     static var myQueue: HUDRegion { M.myQueue }
+
+    /// Centre chrome that overhangs both play bands, to be excluded from any
+    /// scan of either board. Not a play region: it is the strip to THROW AWAY.
+    ///
+    /// The boards are mirror-derived and must not be perturbed to dodge chrome,
+    /// so the chrome is subtracted at sample time instead — see TrackScanner.
+    ///
+    /// Measured on 20260816T124547 at 2560x1588. Two separate things live on the
+    /// divider, and they occupy nearly the same columns:
+    ///
+    ///   button cluster (trophy/chat/surrender)  x 1235-1324, y 1187-1479
+    ///   send-queue cards                        x 1238-1318, y  280- 875
+    ///
+    /// Against boards at 190-1240 and 1319-2369, that is a 6px overhang onto the
+    /// right board and 6px onto the left. Note it is the BUTTONS that reach the
+    /// right board — the queue stops at 1318, one pixel short of it — so masking
+    /// `myQueue` would have missed the overhang entirely while discarding 22px of
+    /// real board that has no chrome on it.
+    ///
+    /// One column covers both, full play height, since they share their columns
+    /// and nothing else is ever drawn there. 1232-1328 gives ~3px of margin.
+    /// A tower sprite is ~150px wide, so its centre can never sit in the 6px the
+    /// mask takes from a board; nothing detectable is lost.
+    static let centreChrome = HUDRegion(name: "centre_chrome",
+                                        rect: CGRect(x: 0.4813, y: 0.1102,
+                                                     width: 0.0375, height: 0.8816))
 
     // The centre triple has no partner either. Whether it moves is decided by
     // `topBarMirrors`, which is measured at latch time rather than assumed.

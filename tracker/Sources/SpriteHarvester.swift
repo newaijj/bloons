@@ -69,6 +69,11 @@ final class SpriteHarvester {
     var librarySize: Int { library.count }
     var siteCount: Int { board.confirmedSites.count }
     var trace: BoardWatcher.Trace { board.trace }
+    /// Your own census, for offline scoring. This is the side worth scoring
+    /// against: a cash drop with flat eco dates and prices every purchase here
+    /// exactly, so your own board is fully labelled ground truth for a detector
+    /// that has to work on a board where no labels exist at all.
+    var sites: [TowerSite] { board.confirmedSites }
 
     /// Feed your own HUD. Call on every snapshot that parsed cash and eco,
     /// passing the time of the frame it was read from.
@@ -106,10 +111,16 @@ final class SpriteHarvester {
             switch c {
             case .appeared(let s):
                 guard let price = takeSpend() else { continue }
-                library.learn(s.descriptor, cumulativeCost: price,
-                              note: "new tower, R\(round)")
-                learnedThisRun += 1
-                notes.append("learned: new tower = $\(price) (library \(library.count))")
+                switch library.learn(s.descriptor, cumulativeCost: price,
+                                     note: "new tower, R\(round)") {
+                case .learned:
+                    learnedThisRun += 1
+                    notes.append("learned: new tower = $\(price) (library \(library.count))")
+                case .rejected(let why):
+                    // The pairing, not the price, is what went wrong: some cash
+                    // move that was not this purchase got matched to it.
+                    notes.append("REJECTED new tower: \(why) — cash/board pairing is wrong")
+                }
 
             case .upgraded(let s, let from):
                 guard let price = takeSpend() else { continue }
@@ -122,10 +133,14 @@ final class SpriteHarvester {
                     notes.append("upgrade seen at $\(price) but the prior appearance is unknown — not learned")
                     continue
                 }
-                library.learn(s.descriptor, cumulativeCost: base + price,
-                              note: "upgrade from $\(base), R\(round)")
-                learnedThisRun += 1
-                notes.append("learned: upgrade = $\(base + price) cumulative (library \(library.count))")
+                switch library.learn(s.descriptor, cumulativeCost: base + price,
+                                     note: "upgrade from $\(base), R\(round)") {
+                case .learned:
+                    learnedThisRun += 1
+                    notes.append("learned: upgrade = $\(base + price) cumulative (library \(library.count))")
+                case .rejected(let why):
+                    notes.append("REJECTED upgrade: \(why) — cash/board pairing is wrong")
+                }
 
             case .removed(let s):
                 guard let cost = library.match(s.descriptor)?.entry.cumulativeCost, cost > 0,

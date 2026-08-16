@@ -37,6 +37,27 @@ struct Options {
     /// one we have no captures of — see FrameDump.
     var dump: FrameDump.Policy = .auto
     var dumpMax = 20
+    /// Record the whole session as a replayable corpus — see SessionRecorder.
+    /// Distinct from `--dump`, which preserves evidence around an anomaly.
+    var record = false
+    var recordFPS = 4
+    var recordMax = 4000
+    var recordNote = ""
+    /// Event-windowed recording: keep a ring around each ground-truth label
+    /// plus occasional quiet windows, instead of every frame. See
+    /// SessionRecorder — a continuous match is ~850 frames of a mostly static
+    /// board. `--record-all` restores continuous capture.
+    var recordPolicy = SessionRecorder.Policy()
+    /// Write every census candidate crop here, named with its verdict and
+    /// metrics, so a detector that finds nothing can be told apart from a board
+    /// that had nothing on it.
+    var cropDir: String?
+    /// Solo modes (Hero Challenge) show an opponent with infinite lives, which
+    /// no lives test can parse. See HUDReader.soloMode.
+    var solo = false
+    /// Emit `file,t,cash` for every frame of a recording and exit. Used to date
+    /// labelled placements by the cash drop they caused.
+    var scanCash: String?
 }
 
 func parseOptions() -> Options {
@@ -68,13 +89,48 @@ func parseOptions() -> Options {
             o.dump = p
         case "--dump-max":
             o.dumpMax = Int(it.next() ?? "") ?? o.dumpMax
+        case "--record":      o.record = true
+        case "--record-fps":  o.recordFPS = Int(it.next() ?? "") ?? o.recordFPS
+        case "--record-max":  o.recordMax = Int(it.next() ?? "") ?? o.recordMax
+        case "--record-note": o.recordNote = it.next() ?? ""
+        case "--record-all":  o.recordPolicy.all = true
+        case "--record-pre":  o.recordPolicy.pre = Double(it.next() ?? "") ?? o.recordPolicy.pre
+        case "--record-post": o.recordPolicy.post = Double(it.next() ?? "") ?? o.recordPolicy.post
+        case "--record-margin":
+            o.recordPolicy.margin = Double(it.next() ?? "") ?? o.recordPolicy.margin
+        case "--record-quiet":
+            // "<every>,<for>" in seconds, e.g. 90,4
+            let v = (it.next() ?? "").split(separator: ",").compactMap { Double($0) }
+            if v.count == 2 { o.recordPolicy.quietEvery = v[0]; o.recordPolicy.quietFor = v[1] }
+        case "--census-crops": o.cropDir = it.next()
+        case "--solo": o.solo = true
+        case "--scan-cash": o.scanCash = it.next()
         default: FileHandle.standardError.write("unknown arg: \(a)\n".data(using: .utf8)!)
         }
     }
     return o
 }
 
-let opts = parseOptions()
+/// Manifest of a recorded session, if the path is one.
+func peekManifest(_ dir: String) -> SessionManifest? {
+    let u = URL(fileURLWithPath: dir).appendingPathComponent("manifest.json")
+    guard let d = FileManager.default.contents(atPath: u.path) else { return nil }
+    return try? JSONDecoder().decode(SessionManifest.self, from: d)
+}
+
+var opts = parseOptions()
+
+// A recorded session dictates the frame rate, overriding whatever was asked
+// for. The census now measures every window in recorded seconds, so this is no
+// longer load-bearing for correctness — but SendDetector still paces bursts by
+// frame count, and reporting the rate the frames were actually taken at keeps
+// the replay honest about what it is replaying.
+if let idx = CommandLine.arguments.firstIndex(of: "--replay"),
+   idx + 1 < CommandLine.arguments.count,
+   let m = peekManifest(CommandLine.arguments[idx + 1]), m.fps != opts.fps {
+    print("replay: adopting the recording's \(m.fps)fps (asked for \(opts.fps))")
+    opts.fps = m.fps
+}
 
 // Resolve the round table relative to the binary if the default path misses.
 func resolveDataPath(_ p: String) -> String? {
@@ -104,14 +160,31 @@ guard let dataPath = resolveDataPath(opts.dataPath), let roundData = RoundData(p
 }
 print("round table: \(roundData.loadedRounds) rounds from \(dataPath)")
 
+// Candidate crops, when asked for. Set before any watcher runs.
+if let cd = opts.cropDir {
+    let base = URL(fileURLWithPath: cd)
+    try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+    var n = 0
+    BoardWatcher.cropSink = { cg, label in
+        n += 1
+        let url = base.appendingPathComponent(String(format: "c%03d_%@.png", n, label))
+        guard let dest = CGImageDestinationCreateWithURL(
+            url as CFURL, "public.png" as CFString, 1, nil) else { return }
+        CGImageDestinationAddImage(dest, cg, nil)
+        CGImageDestinationFinalize(dest)
+    }
+    print("census crops → \(base.path)")
+}
+
+HUDReader.soloMode = opts.solo
 let hud = HUDReader()
 let detector = SendDetector(roundData: roundData, fps: opts.fps)
 /// Tower prices, learned on your own board and kept across matches — a library
 /// that reset each launch would never get past whatever you built in the first
 /// two minutes.
 let spriteLibrary = SpriteLibrary(path: resolveLibraryPath(opts.libraryPath))
-let towers = TowerWatcher(roundData: roundData, library: spriteLibrary, fps: opts.fps)
-let harvester = SpriteHarvester(roundData: roundData, library: spriteLibrary, fps: opts.fps)
+let towers = TowerWatcher(roundData: roundData, library: spriteLibrary)
+let harvester = SpriteHarvester(roundData: roundData, library: spriteLibrary)
 let model = IncomeModel(roundData: roundData)
 let capture = WindowCapture()
 let sideDetector = SideDetector()
@@ -124,11 +197,40 @@ var lastClippedSeen = 0
 
 /// Frames are written next to the binary, so a dump can be replayed straight
 /// back with `--replay tracker/out/<session>`.
-let frameDump = FrameDump(
-    policy: opts.dump,
-    maxFrames: opts.dumpMax,
-    baseDir: URL(fileURLWithPath: CommandLine.arguments[0])
-        .deletingLastPathComponent().appendingPathComponent("out", isDirectory: true))
+let outBase = URL(fileURLWithPath: CommandLine.arguments[0])
+    .deletingLastPathComponent().appendingPathComponent("out", isDirectory: true)
+
+let frameDump = FrameDump(policy: opts.dump, maxFrames: opts.dumpMax, baseDir: outBase)
+
+let sessionName: String = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyyMMdd'T'HHmmss"
+    return f.string(from: Date())
+}()
+
+/// Continuous corpus recording, only when asked for.
+let recorder: SessionRecorder? = opts.record
+    ? SessionRecorder(baseDir: outBase, session: sessionName,
+                      fps: opts.recordFPS, maxFrames: opts.recordMax,
+                      policy: opts.recordPolicy)
+    : nil
+
+/// Close the manifest exactly once, however the process ends. A session killed
+/// with Ctrl-C is the normal way a recording ends — the run is over when you
+/// have enough of it — so an unwritten manifest there would mean losing the
+/// timestamps that make the frames replayable at all.
+let finishOnce = NSLock()
+var finished = false
+@Sendable func finishRecording() {
+    finishOnce.lock()
+    guard !finished else { finishOnce.unlock(); return }
+    finished = true
+    finishOnce.unlock()
+    recorder?.finish(side: Regions.latched ? Regions.mySide.rawValue : nil,
+                     topBarMirrors: Regions.topBarMirrors,
+                     note: opts.recordNote.isEmpty ? layoutNote()
+                                                   : opts.recordNote + "\n\n" + layoutNote())
+}
 
 /// What the tracker believed about the layout, written beside a dump so the
 /// frames are interpretable without this session's console output.
@@ -333,6 +435,13 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
         }
     }
 
+    // Recorded before the side gate, so a corpus contains the menu and the
+    // first seconds of the board too — the window where the match probe and
+    // side latch have to get it right, and the one a dump has never covered.
+    if let rec = recorder, rec.due(at: frame.time), let cg = frame.makeCGImage() {
+        rec.record(cg, at: frame.time)
+    }
+
     // Which half of the screen is ours is settled before a single pixel is
     // attributed to anybody. Scanning earlier would only build a background
     // model on a region that is about to move, and scoring earlier would risk
@@ -416,8 +525,12 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     // Only score frames that are actually a match in progress. Menus, the
     // lobby, and the post-game screen all contain saturated artwork that reads
     // as bloons and would otherwise credit the opponent with phantom sends.
-    guard let round = current.round, round >= 1,
-          current.myLives != nil, current.oppLives != nil else { return }
+    // Same relaxation as the match probe: in solo the opponent's lives are an
+    // infinity glyph, so demanding both here would keep every frame unscored
+    // even once the probe has let the match through.
+    let livesOK = opts.solo ? (current.myLives != nil || current.oppLives != nil)
+                            : (current.myLives != nil && current.oppLives != nil)
+    guard let round = current.round, round >= 1, livesOK else { return }
 
     // Detector and model are written here on the capture queue but read from
     // the timer thread, so both stay under the same lock.
@@ -429,7 +542,9 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     // Your own board, watched only to learn what sprites cost. Your cash gives
     // the exact figure, so this is the one place in the whole pipeline where a
     // price is known rather than estimated.
-    if let cash = current.myCash, let eco = current.myEco { harvester.observe(cash: cash, eco: eco) }
+    if let cash = current.myCash, let eco = current.myEco {
+        harvester.observe(cash: cash, eco: eco, at: frame.time)
+    }
     let learnNotes = harvester.update(frame, round: round)
 
     // Books before valuation: the bound a board is judged against needs this
@@ -507,29 +622,72 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 // MARK: - replay
 //
 // Push recorded PNGs through the live pipeline. Validates HUD parsing, send-card
-// reading, and the track scan without needing a match in progress. Send timing
-// is wall-clock in replay, so burst counts are indicative rather than exact.
+// reading, the track scan, and — since frames carry their own capture time — the
+// census dynamics too.
 //
-// Builds will report zero here, and that is correct rather than broken: a build
-// has to survive a 3s settle window and a 3s persistence check against frames
-// that were captured seconds apart and are replayed in milliseconds. Replay
-// exercises parsing, not dynamics.
+// Builds used to report zero here by construction, because a build must survive
+// a 3s settle window and a 2s census period, and frames captured seconds apart
+// were being replayed in milliseconds against a wall clock. Frames now carry
+// `time` from the recording, so those windows measure recorded seconds and a
+// replay reproduces what the live run did. That is what makes tuning detection
+// an offline exercise rather than one live match per experiment.
+//
+// A directory without a manifest is still replayable — the two historic dumps
+// have none — but its frames get synthesised timestamps, which is a guess at
+// the pacing rather than a record of it.
 
 func runReplay(_ dir: String) -> Never {
-    let files = ((try? FileManager.default.contentsOfDirectory(atPath: dir)) ?? [])
-        .filter { $0.hasSuffix(".png") && !$0.contains("annotated") }.sorted()
-    guard !files.isEmpty else { print("no PNGs in \(dir)"); exit(1) }
-    print("replaying \(files.count) frames from \(dir)\n")
+    let manifest = peekManifest(dir)
+    var timed: [(file: String, t: Double)]
+
+    if let m = manifest, !m.frames.isEmpty {
+        timed = m.frames.map { ($0.file, $0.t) }.sorted { $0.1 < $1.1 }
+        print("replaying \(timed.count) frames from \(dir)")
+        print("  manifest: \(m.fps)fps, \(m.frameWidth)x\(m.frameHeight), side \(m.side ?? "unrecorded"), spanning \(String(format: "%.1fs", (timed.last?.t ?? 0) - (timed.first?.t ?? 0)))\n")
+    } else {
+        let files = ((try? FileManager.default.contentsOfDirectory(atPath: dir)) ?? [])
+            .filter { $0.hasSuffix(".png") && !$0.contains("annotated") }.sorted()
+        guard !files.isEmpty else { print("no PNGs in \(dir)"); exit(1) }
+        // FrameDump paces a burst at 1s then drops to every 15s, so uniform
+        // spacing is wrong for those dumps. Said out loud rather than hidden,
+        // because anything timing-dependent read off a synthesised clock is
+        // measuring the assumption.
+        let step = 1.0 / Double(max(1, opts.fps))
+        timed = files.enumerated().map { ($0.element, Double($0.offset) * step) }
+        print("""
+        replaying \(files.count) frames from \(dir)
+          no manifest — timestamps synthesised at \(opts.fps)fps, so anything
+          timing-dependent (builds, census, eco tick) is indicative only
+
+        """)
+    }
 
     // Frames arrive as fast as they decode, so the live detector's 3s settling
     // window is meaningless here — decide on hit count alone.
     let replaySide = SideDetector(minSeconds: 0)
 
-    for (i, f) in files.enumerated() {
+    // A windowed recording is a set of clips, not one continuous stream, and
+    // the background model cannot span the joins: jumping from t=60 to t=155
+    // makes every pixel that changed in between look like it changed at once,
+    // which reads as a board-wide scene change and buries any real build in a
+    // pool of thousands of spurious samples. So each gap starts a fresh clip.
+    let gapSeconds = max(2.0, 5.0 / Double(opts.fps))
+    var prevT: Double?
+
+    for (i, entry) in timed.enumerated() {
+        let f = entry.file
+        if let pt = prevT, entry.t - pt > gapSeconds {
+            print(String(format: "── gap %.1fs → new clip; scanners reset", entry.t - pt))
+            detector.retarget()
+            towers.retarget()
+            harvester.retarget()
+            hud.resetHistory()
+        }
+        prevT = entry.t
         let url = URL(fileURLWithPath: dir).appendingPathComponent(f)
         guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
               let cg = CGImageSourceCreateImageAtIndex(src, 0, nil),
-              let pb = makePixelBuffer(from: cg), let frame = Frame(pb)
+              let pb = makePixelBuffer(from: cg), let frame = Frame(pb, time: entry.t)
         else { print("\(f): could not decode"); continue }
 
         if i == 0 {
@@ -573,9 +731,11 @@ func runReplay(_ dir: String) -> Never {
         if let r = snap.round { detector.noteRound(r) }
         detector.setAvailable(cards: snap.sendCards)
         let events = detector.update(counts: counts, cards: snap.sendCards)
-        towers.update(frame, round: snap.round ?? 0)
-        if let c = snap.myCash, let e = snap.myEco { harvester.observe(cash: c, eco: e) }
-        harvester.update(frame, round: snap.round ?? 0)
+        let boardNotes = towers.update(frame, round: snap.round ?? 0)
+        if let c = snap.myCash, let e = snap.myEco {
+            harvester.observe(cash: c, eco: e, at: frame.time)
+        }
+        let learnNotes = harvester.update(frame, round: snap.round ?? 0)
         model.update(snap: snap, events: events)
         model.noteTowerValuation(towers.valuation)
 
@@ -586,11 +746,25 @@ func runReplay(_ dir: String) -> Never {
             .sorted { $0.value > $1.value }
             .map { "\($0.key.rawValue):\($0.value)" }.joined(separator: " ")
 
-        print("\(f)")
+        print("\(f)  t=\(String(format: "%.2fs", frame.time))")
         print("  round=\(snap.round.map(String.init) ?? "?") cash=\(snap.myCash.map(String.init) ?? "?") eco=\(snap.myEco.map { String(format: "%.0f", $0) } ?? "?") lives=\(snap.myLives.map(String.init) ?? "?")/\(snap.oppLives.map(String.init) ?? "?")")
         print("  opp=\"\(snap.oppName ?? "")\" me=\"\(snap.myName ?? "")\"")
         if !cards.isEmpty { print("  cards: \(cards)") }
         if !seen.isEmpty  { print("  track: \(seen)") }
+        func census(_ who: String, _ t: BoardWatcher.Trace) -> String? {
+            guard t.absorbed > 0 || t.poolSize > 0 || t.sites > 0 else { return nil }
+            var s = "  \(who): absorbed=\(t.absorbed) pool=\(t.poolSize)"
+            if t.blobs > 0 { s += " blobs=\(t.blobs)/\(t.blobsPlausible) plausible" }
+            if t.rejectedTexture > 0 { s += " -\(t.rejectedTexture) flat" }
+            if t.rejectedNearby > 0 { s += " -\(t.rejectedNearby) dup" }
+            s += " sites=\(t.sites) confirmed=\(t.confirmed)"
+            if !t.armed { s += " (settling)" }
+            return s
+        }
+        if let l = census("theirs", towers.trace) { print(l) }
+        if let l = census("mine  ", harvester.trace) { print(l) }
+        for n in boardNotes { print("  \(n)") }
+        for n in learnNotes { print("  \(n)") }
         for e in events { print("  >> SEND \(e.sends)x \(e.type.display) conf=\(String(format: "%.2f", e.confidence))") }
     }
 
@@ -613,6 +787,27 @@ func runReplay(_ dir: String) -> Never {
     exit(0)
 }
 
+/// Per-frame cash, nothing else. Cheap enough to run over a whole session.
+func runScanCash(_ dir: String) -> Never {
+    guard let m = peekManifest(dir) else {
+        print("no manifest in \(dir) — cash scan needs frame times"); exit(1)
+    }
+    print("file,t,cash")
+    for e in m.frames.sorted(by: { $0.t < $1.t }) {
+        let url = URL(fileURLWithPath: dir).appendingPathComponent(e.file)
+        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let cg = CGImageSourceCreateImageAtIndex(src, 0, nil) else { continue }
+        let cash = hud.cashOnly(cg).map(String.init) ?? ""
+        print("\(e.file),\(String(format: "%.3f", e.t)),\(cash)")
+    }
+    exit(0)
+}
+
+if let idx = CommandLine.arguments.firstIndex(of: "--scan-cash"),
+   idx + 1 < CommandLine.arguments.count {
+    runScanCash(CommandLine.arguments[idx + 1])
+}
+
 if let idx = CommandLine.arguments.firstIndex(of: "--replay"),
    idx + 1 < CommandLine.arguments.count {
     runReplay(CommandLine.arguments[idx + 1])
@@ -622,6 +817,21 @@ if let idx = CommandLine.arguments.firstIndex(of: "--replay"),
 
 let app = NSApplication.shared
 app.setActivationPolicy(.accessory)   // no dock icon, never steals focus
+
+// Ctrl-C is the normal way a recording ends — you stop when you have enough of
+// the match — so the manifest has to survive it. Without this the frames land
+// on disk with no timestamps beside them, which is exactly the metadata that
+// makes them replayable rather than a pile of PNGs.
+var signalSources: [DispatchSourceSignal] = []
+if recorder != nil {
+    for sig in [SIGINT, SIGTERM] {
+        signal(sig, SIG_IGN)   // handled by the dispatch source instead
+        let src = DispatchSource.makeSignalSource(signal: sig, queue: .main)
+        src.setEventHandler { finishRecording(); exit(0) }
+        src.resume()
+        signalSources.append(src)
+    }
+}
 
 Task {
     guard let win = await WindowCapture.findWindow() else {

@@ -1,0 +1,5 @@
+{"event": "map", "name": "koru", "t": "2026-08-16T15:53:00.000Z"}
+{"event": "note", "text": "hero challenge vs TD, rounds 40, side LEFT, dark map"}
+{"event": "note", "text": "CORRECTION: no tower was ever placed in this session. Cash held exactly to 650+250n (1400,1650,1900,2150,2400,2650,2900,3150,3650,3900,4150,4400) with no deduction. The tack_shooter and bomb_shooter seen on screen were DRAG PREVIEWS following the cursor, not placements; the tack preview vanished when the bomb was dragged."}
+{"event": "preview_not_placed", "tower": "tack_shooter", "cost": 280, "screen_x": 300, "screen_y": 250, "t_before": "2026-08-16T15:53:02.058Z", "t_after": "2026-08-16T15:53:52.904Z", "note": "drag preview only; useful as a NEGATIVE - sprite visible, no purchase"}
+{"event": "preview_not_placed", "tower": "bomb_shooter", "cost": 525, "screen_x": 250, "screen_y": 490, "t_before": "2026-08-16T15:53:52.904Z", "t_after": "2026-08-16T15:54:40.324Z", "note": "drag preview only; useful as a NEGATIVE - sprite visible, no purchase"}

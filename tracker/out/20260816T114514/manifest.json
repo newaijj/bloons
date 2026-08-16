@@ -1,0 +1,627 @@
+{
+  "fps": 4,
+  "frameHeight": 1588,
+  "frameWidth": 2560,
+  "frames": [
+    {
+      "file": "f00000.png",
+      "t": 0,
+      "why": "quiet"
+    },
+    {
+      "file": "f00001.png",
+      "t": 0.3020323750024545,
+      "why": "quiet"
+    },
+    {
+      "file": "f00002.png",
+      "t": 0.6044874170038383,
+      "why": "quiet"
+    },
+    {
+      "file": "f00003.png",
+      "t": 0.9105178330064518,
+      "why": "quiet"
+    },
+    {
+      "file": "f00004.png",
+      "t": 1.212600167003984,
+      "why": "quiet"
+    },
+    {
+      "file": "f00005.png",
+      "t": 1.51305775000219,
+      "why": "quiet"
+    },
+    {
+      "file": "f00006.png",
+      "t": 1.8150197500071954,
+      "why": "quiet"
+    },
+    {
+      "file": "f00007.png",
+      "t": 2.1163964580046013,
+      "why": "quiet"
+    },
+    {
+      "file": "f00008.png",
+      "t": 2.4179696250066627,
+      "why": "quiet"
+    },
+    {
+      "file": "f00009.png",
+      "t": 2.7198747920047026,
+      "why": "quiet"
+    },
+    {
+      "file": "f00199.png",
+      "t": 60.1313893750048,
+      "why": "quiet"
+    },
+    {
+      "file": "f00200.png",
+      "t": 60.43144525000389,
+      "why": "quiet"
+    },
+    {
+      "file": "f00201.png",
+      "t": 60.733162792006624,
+      "why": "quiet"
+    },
+    {
+      "file": "f00202.png",
+      "t": 61.035146500005794,
+      "why": "quiet"
+    },
+    {
+      "file": "f00203.png",
+      "t": 61.33663391700247,
+      "why": "quiet"
+    },
+    {
+      "file": "f00204.png",
+      "t": 61.638065292005194,
+      "why": "quiet"
+    },
+    {
+      "file": "f00205.png",
+      "t": 61.93803558300715,
+      "why": "quiet"
+    },
+    {
+      "file": "f00206.png",
+      "t": 62.24417833300686,
+      "why": "quiet"
+    },
+    {
+      "file": "f00207.png",
+      "t": 62.54758729200694,
+      "why": "quiet"
+    },
+    {
+      "file": "f00208.png",
+      "t": 62.8490421670067,
+      "why": "quiet"
+    },
+    {
+      "file": "f00398.png",
+      "t": 120.27627570800541,
+      "why": "quiet"
+    },
+    {
+      "file": "f00399.png",
+      "t": 120.5786270420067,
+      "why": "quiet"
+    },
+    {
+      "file": "f00400.png",
+      "t": 120.87974550000217,
+      "why": "quiet"
+    },
+    {
+      "file": "f00401.png",
+      "t": 121.18218604200229,
+      "why": "quiet"
+    },
+    {
+      "file": "f00402.png",
+      "t": 121.48323179200088,
+      "why": "quiet"
+    },
+    {
+      "file": "f00403.png",
+      "t": 121.7851815420072,
+      "why": "quiet"
+    },
+    {
+      "file": "f00404.png",
+      "t": 122.0865066250044,
+      "why": "quiet"
+    },
+    {
+      "file": "f00405.png",
+      "t": 122.38767566700699,
+      "why": "quiet"
+    },
+    {
+      "file": "f00406.png",
+      "t": 122.69347345800634,
+      "why": "quiet"
+    },
+    {
+      "file": "f00407.png",
+      "t": 122.9963794580035,
+      "why": "quiet"
+    },
+    {
+      "file": "f00513.png",
+      "t": 155.03273583300324,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00514.png",
+      "t": 155.33505404200696,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00515.png",
+      "t": 155.63592645800236,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00516.png",
+      "t": 155.93765508300567,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00517.png",
+      "t": 156.24236533300427,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00518.png",
+      "t": 156.54403475000436,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00519.png",
+      "t": 156.8451574580031,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00520.png",
+      "t": 157.1467832920025,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00521.png",
+      "t": 157.44940695800324,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00522.png",
+      "t": 157.7497915000058,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00523.png",
+      "t": 158.05309162500635,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00524.png",
+      "t": 158.35450745800335,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00525.png",
+      "t": 158.66210291700554,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00526.png",
+      "t": 158.96257408300153,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00527.png",
+      "t": 159.26540725000086,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00528.png",
+      "t": 159.5680139580072,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00529.png",
+      "t": 159.87036312500277,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00530.png",
+      "t": 160.17161429200496,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00531.png",
+      "t": 160.47612687500077,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00532.png",
+      "t": 160.77746537500207,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00533.png",
+      "t": 161.08095983300154,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00534.png",
+      "t": 161.3814487500058,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00535.png",
+      "t": 161.68279050000274,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00536.png",
+      "t": 161.98468812500505,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00537.png",
+      "t": 162.2863215000034,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00538.png",
+      "t": 162.59315700000298,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00539.png",
+      "t": 162.89488308300497,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00540.png",
+      "t": 163.19836429200222,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00541.png",
+      "t": 163.49860200000694,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00542.png",
+      "t": 163.8010728750014,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00543.png",
+      "t": 164.10307137500058,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00544.png",
+      "t": 164.403996208006,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00545.png",
+      "t": 164.70988404200034,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00546.png",
+      "t": 165.01315716700628,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00547.png",
+      "t": 165.31455462500162,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00548.png",
+      "t": 165.6170146670047,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00549.png",
+      "t": 165.9193983330042,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00550.png",
+      "t": 166.21915500000614,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00551.png",
+      "t": 166.5210101670018,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00552.png",
+      "t": 166.82775820800452,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00553.png",
+      "t": 167.12938058300642,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00554.png",
+      "t": 167.4307931670046,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00555.png",
+      "t": 167.73347862500668,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00556.png",
+      "t": 168.03514887500205,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00557.png",
+      "t": 168.33671850000246,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00558.png",
+      "t": 168.637687500006,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00559.png",
+      "t": 168.9424616250035,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00560.png",
+      "t": 169.24293116700574,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00561.png",
+      "t": 169.54467404200113,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00562.png",
+      "t": 169.84460270800628,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00563.png",
+      "t": 170.14511054200557,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00564.png",
+      "t": 170.4471912500012,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00565.png",
+      "t": 170.7482088750039,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00566.png",
+      "t": 171.04878004200145,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00567.png",
+      "t": 171.35134654200374,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00568.png",
+      "t": 171.6535909170052,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00569.png",
+      "t": 171.96108045800065,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00570.png",
+      "t": 172.26206708300015,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00571.png",
+      "t": 172.56399462500121,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00572.png",
+      "t": 172.8657200420057,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00573.png",
+      "t": 173.1670225420021,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00574.png",
+      "t": 173.4692559170071,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00575.png",
+      "t": 173.77097570800106,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00576.png",
+      "t": 174.07670533300552,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00577.png",
+      "t": 174.37701566700707,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00578.png",
+      "t": 174.6789337500013,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00579.png",
+      "t": 174.9809580000001,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00580.png",
+      "t": 175.2821909580016,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00581.png",
+      "t": 175.58588900000177,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00582.png",
+      "t": 175.8884724580057,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00583.png",
+      "t": 176.18804787500267,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00584.png",
+      "t": 176.495158042002,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00585.png",
+      "t": 176.79574862500158,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00586.png",
+      "t": 177.09813770800247,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00587.png",
+      "t": 177.40053833300044,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00588.png",
+      "t": 177.70327958300186,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00589.png",
+      "t": 178.01002150000568,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00590.png",
+      "t": 178.3116263330012,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00591.png",
+      "t": 178.61236029200518,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00592.png",
+      "t": 178.91481066700362,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00593.png",
+      "t": 179.21747637500084,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00594.png",
+      "t": 179.5183842080005,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00595.png",
+      "t": 179.82149637500697,
+      "why": "placement:dart_monkey"
+    },
+    {
+      "file": "f00795.png",
+      "t": 240.24809708300018,
+      "why": "quiet"
+    },
+    {
+      "file": "f00796.png",
+      "t": 240.54934345800575,
+      "why": "quiet"
+    },
+    {
+      "file": "f00797.png",
+      "t": 240.8502347080066,
+      "why": "quiet"
+    },
+    {
+      "file": "f00798.png",
+      "t": 241.15384558300138,
+      "why": "quiet"
+    },
+    {
+      "file": "f00799.png",
+      "t": 241.4529976670019,
+      "why": "quiet"
+    },
+    {
+      "file": "f00800.png",
+      "t": 241.75435658300557,
+      "why": "quiet"
+    },
+    {
+      "file": "f00801.png",
+      "t": 242.0538714580034,
+      "why": "quiet"
+    },
+    {
+      "file": "f00802.png",
+      "t": 242.3596800420055,
+      "why": "quiet"
+    },
+    {
+      "file": "f00803.png",
+      "t": 242.66062995800166,
+      "why": "quiet"
+    },
+    {
+      "file": "f00804.png",
+      "t": 242.96126383299998,
+      "why": "quiet"
+    }
+  ],
+  "note": "Hero Challenge vs T.D., map SALMON LADDER, rounds 40, side left. Corpus session 1: labelled tower placements.\n\nside          undecided\ntop bar       unchanged\nevidence      0 frames, panel-column text hits left=0 right=0\n\nresolved regions (normalised, top-left origin):\n  my_track     x 0.5000\u20130.9102  y 0.1102\u20130.9918\n  opp_track    x 0.0742\u20130.4844  y 0.1102\u20130.9918\n  send_menu    x 0.9277\u20131.0019  y 0.5038\u20130.6864\n  my_name      x 0.8594\u20130.9883  y 0.0705\u20130.1070\n  opp_name     x 0.0078\u20130.1562  y 0.0705\u20130.1070\n  my_cash      x 0.3848\u20130.4532  y 0.0705\u20130.1070\n  my_eco       x 0.4707\u20130.5156  y 0.0705\u20130.1070\n  round        x 0.5332\u20130.6211  y 0.0705\u20130.1070\n\nPruned to the windows that carry signal; manifest.full.json lists the original frame set. Everything else was a static board.",
+  "session": "20260816T114514",
+  "startedAt": "2026-08-16T15:45:14.685Z",
+  "topBarMirrors": false,
+  "windowed": true
+}

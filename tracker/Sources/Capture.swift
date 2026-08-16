@@ -21,12 +21,24 @@ final class Frame {
     let pixelBuffer: CVPixelBuffer
     let width: Int
     let height: Int
+    /// Seconds since the first frame of this session, on the clock the frame was
+    /// PRODUCED against rather than the one it is being processed on.
+    ///
+    /// This is what makes recorded sessions replayable. Anything downstream that
+    /// asks `Date()` how much time has passed is measuring how fast frames are
+    /// being pushed through it, which live is the capture rate and on replay is
+    /// however fast PNGs decode — so a census on a 2s period and a build needing
+    /// a 3s settle window could never fire off recorded frames, and `--replay`
+    /// reported zero builds by construction. Reading time off the frame instead
+    /// makes replay reproduce the live dynamics exactly.
+    let time: Double
     private let base: UnsafeMutablePointer<UInt8>?
     private let bytesPerRow: Int
 
-    init?(_ pb: CVPixelBuffer) {
+    init?(_ pb: CVPixelBuffer, time: Double) {
         guard CVPixelBufferLockBaseAddress(pb, .readOnly) == kCVReturnSuccess else { return nil }
         self.pixelBuffer = pb
+        self.time = time
         self.width = CVPixelBufferGetWidth(pb)
         self.height = CVPixelBufferGetHeight(pb)
         self.bytesPerRow = CVPixelBufferGetBytesPerRow(pb)
@@ -85,6 +97,12 @@ final class WindowCapture: NSObject, SCStreamOutput, SCStreamDelegate {
     private var onFrame: ((Frame) -> Void)?
     private(set) var frameSize = CGSize.zero
 
+    /// Presentation timestamp of the first frame, so `Frame.time` counts from
+    /// zero at the start of the session. Taken from the sample buffer rather
+    /// than the wall clock because that is the clock the capture is actually
+    /// paced on — a frame delayed in the queue still reports when it was taken.
+    private var firstPTS: Double?
+
     /// Set when the stream drops — main loop watches this to re-attach.
     private(set) var stopped = false
 
@@ -99,6 +117,7 @@ final class WindowCapture: NSObject, SCStreamOutput, SCStreamDelegate {
     func start(window: SCWindow, fps: Int, scale: CGFloat, onFrame: @escaping (Frame) -> Void) async throws {
         self.onFrame = onFrame
         self.stopped = false
+        self.firstPTS = nil
 
         let config = SCStreamConfiguration()
         config.width = Int(window.frame.width * scale)
@@ -124,9 +143,16 @@ final class WindowCapture: NSObject, SCStreamOutput, SCStreamDelegate {
 
     func stream(_ stream: SCStream, didOutputSampleBuffer sb: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .screen, sb.isValid,
-              let pb = CMSampleBufferGetImageBuffer(sb),
-              let frame = Frame(pb)
+              let pb = CMSampleBufferGetImageBuffer(sb)
         else { return }
+
+        // An invalid CMTime yields NaN, which would poison every window and
+        // period computed from it downstream, so fall back to the wall clock.
+        let pts = CMSampleBufferGetPresentationTimeStamp(sb).seconds
+        let stamp = pts.isFinite ? pts : Date().timeIntervalSinceReferenceDate
+        if firstPTS == nil { firstPTS = stamp }
+
+        guard let frame = Frame(pb, time: stamp - (firstPTS ?? stamp)) else { return }
         onFrame?(frame)
     }
 

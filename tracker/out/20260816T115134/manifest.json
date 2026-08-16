@@ -1,0 +1,942 @@
+{
+  "fps": 4,
+  "frameHeight": 1588,
+  "frameWidth": 2560,
+  "frames": [
+    {
+      "file": "f00000.png",
+      "t": 0,
+      "why": "quiet"
+    },
+    {
+      "file": "f00001.png",
+      "t": 0.3001215409967699,
+      "why": "quiet"
+    },
+    {
+      "file": "f00002.png",
+      "t": 0.6018553749963758,
+      "why": "quiet"
+    },
+    {
+      "file": "f00003.png",
+      "t": 0.9053688329950091,
+      "why": "quiet"
+    },
+    {
+      "file": "f00004.png",
+      "t": 1.2074699999939185,
+      "why": "quiet"
+    },
+    {
+      "file": "f00005.png",
+      "t": 1.5097270409969497,
+      "why": "quiet"
+    },
+    {
+      "file": "f00006.png",
+      "t": 1.813058915999136,
+      "why": "quiet"
+    },
+    {
+      "file": "f00007.png",
+      "t": 2.114712790993508,
+      "why": "quiet"
+    },
+    {
+      "file": "f00008.png",
+      "t": 2.4162527909938945,
+      "why": "quiet"
+    },
+    {
+      "file": "f00009.png",
+      "t": 2.7176832080003805,
+      "why": "quiet"
+    },
+    {
+      "file": "f00199.png",
+      "t": 60.14691379099531,
+      "why": "quiet"
+    },
+    {
+      "file": "f00200.png",
+      "t": 60.44967699999688,
+      "why": "quiet"
+    },
+    {
+      "file": "f00201.png",
+      "t": 60.75051233299746,
+      "why": "quiet"
+    },
+    {
+      "file": "f00202.png",
+      "t": 61.05126441599714,
+      "why": "quiet"
+    },
+    {
+      "file": "f00203.png",
+      "t": 61.35673745799431,
+      "why": "quiet"
+    },
+    {
+      "file": "f00204.png",
+      "t": 61.65722475000075,
+      "why": "quiet"
+    },
+    {
+      "file": "f00205.png",
+      "t": 61.96010245799698,
+      "why": "quiet"
+    },
+    {
+      "file": "f00206.png",
+      "t": 62.25948929099832,
+      "why": "quiet"
+    },
+    {
+      "file": "f00207.png",
+      "t": 62.563271915998484,
+      "why": "quiet"
+    },
+    {
+      "file": "f00208.png",
+      "t": 62.86603145799745,
+      "why": "quiet"
+    },
+    {
+      "file": "f00298.png",
+      "t": 90.0598337909978,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00299.png",
+      "t": 90.36018054099986,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00300.png",
+      "t": 90.66102629099623,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00301.png",
+      "t": 90.96259158299654,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00302.png",
+      "t": 91.26191349999863,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00303.png",
+      "t": 91.56564429099672,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00304.png",
+      "t": 91.86776120799914,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00305.png",
+      "t": 92.16806179099513,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00306.png",
+      "t": 92.47454895799456,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00307.png",
+      "t": 92.77592266599822,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00308.png",
+      "t": 93.07739329099422,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00309.png",
+      "t": 93.3801524159935,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00310.png",
+      "t": 93.68299079099961,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00311.png",
+      "t": 93.98404899999878,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00312.png",
+      "t": 94.29042595799547,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00313.png",
+      "t": 94.59077491599601,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00314.png",
+      "t": 94.89359420799883,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00315.png",
+      "t": 95.1948109579971,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00316.png",
+      "t": 95.49560637499962,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00317.png",
+      "t": 95.79675604099612,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00318.png",
+      "t": 96.09953108299669,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00319.png",
+      "t": 96.40134558299906,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00320.png",
+      "t": 96.70946595799614,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00321.png",
+      "t": 97.01001670799451,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00322.png",
+      "t": 97.31139483299921,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00323.png",
+      "t": 97.61236599999393,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00324.png",
+      "t": 97.9138211249956,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00325.png",
+      "t": 98.21502324999892,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00326.png",
+      "t": 98.51642112499394,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00327.png",
+      "t": 98.8183552499977,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00328.png",
+      "t": 99.12325604099897,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00329.png",
+      "t": 99.42476779099525,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00330.png",
+      "t": 99.72766020799463,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00331.png",
+      "t": 100.02879220799514,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00332.png",
+      "t": 100.3287500410006,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00333.png",
+      "t": 100.63152770799934,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00334.png",
+      "t": 100.93414545799897,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00335.png",
+      "t": 101.23539316599636,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00336.png",
+      "t": 101.54138933299691,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00337.png",
+      "t": 101.84275966599671,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00338.png",
+      "t": 102.14317145799578,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00339.png",
+      "t": 102.44604754099419,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00340.png",
+      "t": 102.74677079099638,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00341.png",
+      "t": 103.0491688330003,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00342.png",
+      "t": 103.3503469579955,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00343.png",
+      "t": 103.65725795799517,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00344.png",
+      "t": 103.95871420799813,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00345.png",
+      "t": 104.26062199999433,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00346.png",
+      "t": 104.55963433299621,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00347.png",
+      "t": 104.86304487499729,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00348.png",
+      "t": 105.16440824999881,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00349.png",
+      "t": 105.46657916599361,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00350.png",
+      "t": 105.76688624999952,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00351.png",
+      "t": 106.06809649999923,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00352.png",
+      "t": 106.3723727079996,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00353.png",
+      "t": 106.6743025830001,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00354.png",
+      "t": 106.97702262499661,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00355.png",
+      "t": 107.27919183299673,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00356.png",
+      "t": 107.5812942909979,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00357.png",
+      "t": 107.8830367499977,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00358.png",
+      "t": 108.18441666599392,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00359.png",
+      "t": 108.49149562499952,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00360.png",
+      "t": 108.79340829099965,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00361.png",
+      "t": 109.09294516599766,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00362.png",
+      "t": 109.39483954099705,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00363.png",
+      "t": 109.6974898329936,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00364.png",
+      "t": 109.99919862499519,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00365.png",
+      "t": 110.30078433299786,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00366.png",
+      "t": 110.6017683329992,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00367.png",
+      "t": 110.90664787499554,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00368.png",
+      "t": 111.20911662499566,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00369.png",
+      "t": 111.50975183300034,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00370.png",
+      "t": 111.81052870799613,
+      "why": "negative:tack_preview"
+    },
+    {
+      "file": "f00398.png",
+      "t": 120.27697224999429,
+      "why": "quiet"
+    },
+    {
+      "file": "f00399.png",
+      "t": 120.57708083299804,
+      "why": "quiet"
+    },
+    {
+      "file": "f00400.png",
+      "t": 120.87944874999812,
+      "why": "quiet"
+    },
+    {
+      "file": "f00401.png",
+      "t": 121.18030495799758,
+      "why": "quiet"
+    },
+    {
+      "file": "f00402.png",
+      "t": 121.48243962499691,
+      "why": "quiet"
+    },
+    {
+      "file": "f00403.png",
+      "t": 121.7836036249937,
+      "why": "quiet"
+    },
+    {
+      "file": "f00404.png",
+      "t": 122.08459975000005,
+      "why": "quiet"
+    },
+    {
+      "file": "f00405.png",
+      "t": 122.39207783299935,
+      "why": "quiet"
+    },
+    {
+      "file": "f00406.png",
+      "t": 122.69125349999376,
+      "why": "quiet"
+    },
+    {
+      "file": "f00407.png",
+      "t": 122.99470166599349,
+      "why": "quiet"
+    },
+    {
+      "file": "f00474.png",
+      "t": 143.2269839579967,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00475.png",
+      "t": 143.52924599999824,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00476.png",
+      "t": 143.8320162079981,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00477.png",
+      "t": 144.1334575410001,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00478.png",
+      "t": 144.43479554099758,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00479.png",
+      "t": 144.73908291599946,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00480.png",
+      "t": 145.04188862499723,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00481.png",
+      "t": 145.3422219579952,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00482.png",
+      "t": 145.64316320799844,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00483.png",
+      "t": 145.9447265409981,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00484.png",
+      "t": 146.24660283299454,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00485.png",
+      "t": 146.54811537500063,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00486.png",
+      "t": 146.85000849999778,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00487.png",
+      "t": 147.15113112499967,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00488.png",
+      "t": 147.45728995799436,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00489.png",
+      "t": 147.76164383300056,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00490.png",
+      "t": 148.05970874999912,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00491.png",
+      "t": 148.36067633299535,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00492.png",
+      "t": 148.66308933300024,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00493.png",
+      "t": 148.96369137500005,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00494.png",
+      "t": 149.2674082079975,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00495.png",
+      "t": 149.5677193329975,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00496.png",
+      "t": 149.87339795799926,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00497.png",
+      "t": 150.17474554100045,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00498.png",
+      "t": 150.4767522080001,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00499.png",
+      "t": 150.77902258299582,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00500.png",
+      "t": 151.0802402499976,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00501.png",
+      "t": 151.38259929099877,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00502.png",
+      "t": 151.68500879099884,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00503.png",
+      "t": 151.98877641599393,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00504.png",
+      "t": 152.2913783749973,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00505.png",
+      "t": 152.59447908299626,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00506.png",
+      "t": 152.89453549999598,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00507.png",
+      "t": 153.19800124999892,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00508.png",
+      "t": 153.49883308299468,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00509.png",
+      "t": 153.80092029099615,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00510.png",
+      "t": 154.10117387499486,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00511.png",
+      "t": 154.40759587499633,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00512.png",
+      "t": 154.70804649999627,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00513.png",
+      "t": 155.01057799999398,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00514.png",
+      "t": 155.3128557079981,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00515.png",
+      "t": 155.61496954099857,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00516.png",
+      "t": 155.91663874999358,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00517.png",
+      "t": 156.2178356250006,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00518.png",
+      "t": 156.5253321659984,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00519.png",
+      "t": 156.82721420799498,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00520.png",
+      "t": 157.1286192080006,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00521.png",
+      "t": 157.4292980829996,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00522.png",
+      "t": 157.73215570799948,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00523.png",
+      "t": 158.03439283299667,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00524.png",
+      "t": 158.33463608299644,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00525.png",
+      "t": 158.64005333299428,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00526.png",
+      "t": 158.94254970799375,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00527.png",
+      "t": 159.24190512499626,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00528.png",
+      "t": 159.54454183299822,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00529.png",
+      "t": 159.84718329099996,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00530.png",
+      "t": 160.14725370799715,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00531.png",
+      "t": 160.44949591600016,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00532.png",
+      "t": 160.75522608299798,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00533.png",
+      "t": 161.05539158299507,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00534.png",
+      "t": 161.35630775000027,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00535.png",
+      "t": 161.65701712499867,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00536.png",
+      "t": 161.95861924999917,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00537.png",
+      "t": 162.26100912499533,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00538.png",
+      "t": 162.56331770799443,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00539.png",
+      "t": 162.86539324999467,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00540.png",
+      "t": 163.16627712499758,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00541.png",
+      "t": 163.47318804099632,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00542.png",
+      "t": 163.77564933299436,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00543.png",
+      "t": 164.07431570799963,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00544.png",
+      "t": 164.37659937499848,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00545.png",
+      "t": 164.67925716599711,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00546.png",
+      "t": 164.98126995799976,
+      "why": "negative:bomb_preview"
+    },
+    {
+      "file": "f00596.png",
+      "t": 180.08096845799446,
+      "why": "quiet"
+    },
+    {
+      "file": "f00597.png",
+      "t": 180.3835432909982,
+      "why": "quiet"
+    },
+    {
+      "file": "f00598.png",
+      "t": 180.68951104099688,
+      "why": "quiet"
+    },
+    {
+      "file": "f00599.png",
+      "t": 180.99072691599577,
+      "why": "quiet"
+    },
+    {
+      "file": "f00600.png",
+      "t": 181.29276120799477,
+      "why": "quiet"
+    },
+    {
+      "file": "f00601.png",
+      "t": 181.5954412909996,
+      "why": "quiet"
+    },
+    {
+      "file": "f00602.png",
+      "t": 181.89646854099556,
+      "why": "quiet"
+    },
+    {
+      "file": "f00603.png",
+      "t": 182.1978799579956,
+      "why": "quiet"
+    },
+    {
+      "file": "f00604.png",
+      "t": 182.50640654099698,
+      "why": "quiet"
+    },
+    {
+      "file": "f00605.png",
+      "t": 182.80697845800023,
+      "why": "quiet"
+    }
+  ],
+  "note": "Hero Challenge vs T.D., map KORU (dark), rounds 40, side left. Session 2: place immediately at R1 to survive, batched drags.\n\nside          undecided\ntop bar       unchanged\nevidence      0 frames, panel-column text hits left=0 right=0\n\nresolved regions (normalised, top-left origin):\n  my_track     x 0.5000\u20130.9102  y 0.1102\u20130.9918\n  opp_track    x 0.0742\u20130.4844  y 0.1102\u20130.9918\n  send_menu    x 0.9277\u20131.0019  y 0.5038\u20130.6864\n  my_name      x 0.8594\u20130.9883  y 0.0705\u20130.1070\n  opp_name     x 0.0078\u20130.1562  y 0.0705\u20130.1070\n  my_cash      x 0.3848\u20130.4532  y 0.0705\u20130.1070\n  my_eco       x 0.4707\u20130.5156  y 0.0705\u20130.1070\n  round        x 0.5332\u20130.6211  y 0.0705\u20130.1070\n\nPruned to the windows that carry signal; manifest.full.json lists the original frame set. Everything else was a static board.",
+  "session": "20260816T115134",
+  "startedAt": "2026-08-16T15:51:34.861Z",
+  "topBarMirrors": false,
+  "windowed": true
+}

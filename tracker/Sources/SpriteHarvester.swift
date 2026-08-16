@@ -31,7 +31,10 @@ final class SpriteHarvester {
     private var lastEco: Double?
 
     private struct CashMove {
-        let at: Date
+        /// Frame-clock seconds — see `Frame.time`. Pairing a purchase with the
+        /// board change that reports it only works if both are measured on the
+        /// same clock, and on replay the wall clock is not that clock.
+        let at: Double
         let amount: Int      // positive magnitude
         var consumed = false
     }
@@ -41,29 +44,36 @@ final class SpriteHarvester {
     private var spends: [CashMove] = []
     private var gains: [CashMove] = []
     private let pairWindow = 12.0
+    /// Frame time of the most recent frame, so `take` can age the queues without
+    /// a frame in hand.
+    private var now = 0.0
 
     private(set) var learnedThisRun = 0
     private(set) var refundSamples: [Double] = []
 
-    init(roundData: RoundData, library: SpriteLibrary, fps: Int) {
+    init(roundData: RoundData, library: SpriteLibrary) {
         self.roundData = roundData
         self.library = library
-        board = BoardWatcher(region: Regions.myTrack, name: "mine", fps: fps)
+        board = BoardWatcher(region: Regions.myTrack, name: "mine")
     }
 
     func retarget() {
         board.retarget(Regions.myTrack)
         spends.removeAll(); gains.removeAll()
         lastCash = nil; lastEco = nil
+        now = 0
     }
 
     func calibrate(frameWidth: Int) { board.calibrate(frameWidth: frameWidth) }
 
     var librarySize: Int { library.count }
     var siteCount: Int { board.confirmedSites.count }
+    var trace: BoardWatcher.Trace { board.trace }
 
-    /// Feed your own HUD. Call on every snapshot that parsed cash and eco.
-    func observe(cash: Int, eco: Double) {
+    /// Feed your own HUD. Call on every snapshot that parsed cash and eco,
+    /// passing the time of the frame it was read from.
+    func observe(cash: Int, eco: Double, at time: Double) {
+        now = time
         defer { lastCash = cash; lastEco = eco }
         guard let pc = lastCash, let pe = lastEco else { return }
         let dCash = cash - pc
@@ -73,14 +83,14 @@ final class SpriteHarvester {
             // A send costs cash AND raises eco. A tower costs cash and leaves
             // eco alone — which is what makes the price unambiguous.
             guard dEco < 0.05 else { return }
-            spends.append(CashMove(at: Date(), amount: -dCash))
+            spends.append(CashMove(at: now, amount: -dCash))
         } else if dCash > 5, dEco < 0.05 {
             // Could be an eco tick, pops, or a sell refund. Only ever consumed
             // when a site actually disappears, and then only at a plausible
             // ratio, so a tick sitting in here is harmless.
-            gains.append(CashMove(at: Date(), amount: dCash))
+            gains.append(CashMove(at: now, amount: dCash))
         }
-        let cutoff = Date().addingTimeInterval(-pairWindow)
+        let cutoff = now - pairWindow
         spends.removeAll { $0.at < cutoff || $0.consumed }
         gains.removeAll { $0.at < cutoff || $0.consumed }
     }
@@ -88,6 +98,7 @@ final class SpriteHarvester {
     /// Scan your own board and learn from anything that changed.
     @discardableResult
     func update(_ frame: Frame, round: Int) -> [String] {
+        now = frame.time
         let changes = board.update(frame, allowed: roundData.naturalTypes(round))
         var notes: [String] = []
 
@@ -140,11 +151,10 @@ final class SpriteHarvester {
     private func takeGain() -> Int? { take(&gains) }
 
     private func take(_ list: inout [CashMove]) -> Int? {
-        let now = Date()
         var bestIdx: Int?
         var bestGap = Double.greatestFiniteMagnitude
         for (i, m) in list.enumerated() where !m.consumed {
-            let gap = now.timeIntervalSince(m.at)
+            let gap = now - m.at
             if gap <= pairWindow, gap < bestGap { bestGap = gap; bestIdx = i }
         }
         guard let i = bestIdx else { return nil }

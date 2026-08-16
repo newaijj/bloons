@@ -7,6 +7,13 @@
 # The paired OCR .txt dumps are small and kept.
 /calibrate/out/*.png
 
+# Tracker session frames, for the same reason as calibrate's: ~2-4MB each, and
+# one match is ~1100 of them. The interpretable part of a session -- its
+# manifest.json, truth.jsonl and notes.txt -- is a few KB and IS tracked, so a
+# session stays scoreable from the repo while the pixels live on disk only.
+# Back the frames up outside git; nothing here regenerates them.
+/tracker/out/**/*.png
+
 # Run artifacts
 /tracker/run.out
 

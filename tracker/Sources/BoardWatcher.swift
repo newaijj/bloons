@@ -35,7 +35,8 @@ struct TowerSite {
     var areaSamples: Int
     var confirmations: Int
     var misses: Int
-    var firstSeen: Date
+    /// Frame-clock seconds, not wall clock — see `Frame.time`.
+    var firstSeen: Double
     /// A reading that disagrees with the stored descriptor, held until a second
     /// census agrees with it. A bloon crossing the sprite changes the descriptor
     /// for a moment; an upgrade changes it for good.
@@ -75,12 +76,12 @@ final class BoardWatcher {
     private var footprintSamples = 703.0
     private var footprintDiameter = 37
 
-    private var pool: [(t: Date, idx: Int)] = []
+    private var pool: [(t: Double, idx: Int)] = []
     private let poolSeconds = 2.0
 
     private(set) var sites: [TowerSite] = []
     private var nextID = 1
-    private var lastCensus = Date.distantPast
+    private var lastCensus = -Double.greatestFiniteMagnitude
 
     /// Whole-scene changes seen. Surfaced because a run with several is a run
     /// whose books deserve suspicion.
@@ -91,14 +92,19 @@ final class BoardWatcher {
     /// 64-70% of the board over a second or so.
     private let sceneChangeFrameFraction = 0.025
 
-    private var armedAt: Date
+    /// nil means "arm relative to the next frame that arrives". The watcher is
+    /// built, and retargeted, at moments that have no frame in hand, so the
+    /// settle window cannot be anchored until one shows up. Anchoring it to the
+    /// wall clock instead is what made replay meaningless: every frame in a
+    /// recorded set arrives within milliseconds of construction, so the window
+    /// had always already expired.
+    private var armedAt: Double?
     private let settleSeconds = 3.0
 
-    init(region: HUDRegion, name: String, fps: Int) {
+    init(region: HUDRegion, name: String) {
         self.region = region
         self.name = name
-        self.armedAt = Date().addingTimeInterval(settleSeconds)
-        scanner = TrackScanner(region: region, sampleStep: 4, absorbAfterSeconds: 2.5, fps: fps)
+        scanner = TrackScanner(region: region, sampleStep: 4, absorbAfterSeconds: 2.5)
     }
 
     func retarget(_ r: HUDRegion) {
@@ -106,8 +112,8 @@ final class BoardWatcher {
         scanner.retarget(r)
         pool.removeAll()
         sites.removeAll()
-        lastCensus = .distantPast
-        armedAt = Date().addingTimeInterval(settleSeconds)
+        lastCensus = -Double.greatestFiniteMagnitude
+        armedAt = nil
     }
 
     func calibrate(frameWidth: Int) {
@@ -118,10 +124,40 @@ final class BoardWatcher {
 
     var confirmedSites: [TowerSite] { sites.filter(\.isConfirmed) }
 
+    /// Why the census produced what it did, for the frame just scanned. Without
+    /// these the only observable is the site count, and a run that finds nothing
+    /// is indistinguishable from a run where nothing happened — which is exactly
+    /// the ambiguity that makes tuning detection guesswork.
+    struct Trace {
+        var absorbed = 0          // samples absorbed this frame
+        var poolSize = 0          // absorptions still inside the pool window
+        var blobs = 0             // connected components formed from them
+        var blobsPlausible = 0    // ... that passed the size/shape/path gate
+        var rejectedTexture = 0   // ... that then failed looksLikeSprite
+        var rejectedNearby = 0    // ... that landed on an existing site
+        var sites = 0             // tracked, including unconfirmed
+        var confirmed = 0
+        var armed = false
+    }
+    private(set) var trace = Trace()
+
+    /// Where to write every candidate crop with the verdict that was passed on
+    /// it. A gate that rejects everything and a board with nothing on it produce
+    /// identical output — a zero — so the only way to tell a correctly quiet
+    /// detector from a broken one is to look at what it threw away.
+    static var cropSink: ((CGImage, String) -> Void)?
+
     func update(_ frame: Frame, allowed: Set<BloonType>) -> [CensusChange] {
         let result = scanner.scan(frame, allowed: allowed)
-        let now = Date()
+        let now = frame.time
         let gw = scanner.grid.w
+        trace = Trace()
+        trace.absorbed = result.absorbed
+        defer {
+            trace.poolSize = pool.count
+            trace.sites = sites.count
+            trace.confirmed = sites.filter(\.isConfirmed).count
+        }
         guard gw > 0, scanner.sampleCount > 0 else { return [] }
 
         // Scene change: reseed rather than bill it.
@@ -130,26 +166,32 @@ final class BoardWatcher {
             scanner.declareSceneChange()
             sceneChanges += 1
             pool.removeAll()
-            armedAt = now.addingTimeInterval(settleSeconds)
+            armedAt = now + settleSeconds
             return []
         }
 
-        guard now >= armedAt else { pool.removeAll(); return [] }
+        let armAt = armedAt ?? (now + settleSeconds)
+        armedAt = armAt
+        guard now >= armAt else { pool.removeAll(); return [] }
+        trace.armed = true
 
         for i in result.absorbedAt { pool.append((now, i)) }
-        pool.removeAll { now.timeIntervalSince($0.t) > poolSeconds }
+        pool.removeAll { now - $0.t > poolSeconds }
 
         let px = region.pixels(frame.width, frame.height)
         if Double(pool.count) >= footprintSamples * 0.25 {
             var claimed = Set<Int>()
-            for blob in components(pool.map(\.idx), gridW: gw) where isPlausibleSprite(blob, gridW: gw) {
+            let all = components(pool.map(\.idx), gridW: gw)
+            trace.blobs = all.count
+            for blob in all where isPlausibleSprite(blob, gridW: gw) {
+                trace.blobsPlausible += 1
                 claimed.formUnion(blob)
                 addCandidate(blob, gridW: gw, frame: frame, regionPx: px, now: now)
             }
             if !claimed.isEmpty { pool.removeAll { claimed.contains($0.idx) } }
         }
 
-        guard now.timeIntervalSince(lastCensus) >= censusPeriod else { return [] }
+        guard now - lastCensus >= censusPeriod else { return [] }
         lastCensus = now
         return runCensus(frame, now: now)
     }
@@ -157,7 +199,7 @@ final class BoardWatcher {
     // MARK: - candidates
 
     private func addCandidate(_ blob: [Int], gridW: Int, frame: Frame,
-                              regionPx: CGRect, now: Date) {
+                              regionPx: CGRect, now: Double) {
         let xs = blob.map { $0 % gridW }, ys = blob.map { $0 / gridW }
         let step = 4
         // Grid coords back to frame pixels, padded a little so the sprite's
@@ -170,15 +212,26 @@ final class BoardWatcher {
 
         guard let d = describeSprite(frame, x0: x0, y0: y0, x1: x1, y1: y1,
                                      areaSamples: blob.count) else { return }
+
+        if let sink = Self.cropSink, let cg = frame.makeCGImage()?.cropping(
+                to: CGRect(x: x0, y: y0, width: x1 - x0, height: y1 - y0)) {
+            sink(cg, String(format: "%@_t%.1f_%@_edge%.3f_dark%.3f_area%d_%dx%d",
+                            name, now, d.looksLikeSprite ? "PASS" : "FLAT",
+                            d.edgeDensity, d.darkFrac, blob.count, x1 - x0, y1 - y0))
+        }
+
         // Texture gate. Flat things are not towers: the curtain measured 0.005
         // and bare map 0.067 against 0.147+ for every real tower.
-        guard d.looksLikeSprite else { return }
+        guard d.looksLikeSprite else { trace.rejectedTexture += 1; return }
 
         let cx = (x0 + x1) / 2, cy = (y0 + y1) / 2
         // Already covered? Then this is the same tower still fading in, or an
         // upgrade — either way the census handles it, not a second site.
         let near = footprintDiameter * 4
-        if sites.contains(where: { abs($0.centreX - cx) < near && abs($0.centreY - cy) < near }) { return }
+        if sites.contains(where: { abs($0.centreX - cx) < near && abs($0.centreY - cy) < near }) {
+            trace.rejectedNearby += 1
+            return
+        }
 
         sites.append(TowerSite(id: nextID, centreX: cx, centreY: cy,
                                x0: x0, y0: y0, x1: x1, y1: y1,
@@ -190,7 +243,7 @@ final class BoardWatcher {
     // MARK: - census
 
     /// Re-read every site and reconcile it with what is stored.
-    private func runCensus(_ frame: Frame, now: Date) -> [CensusChange] {
+    private func runCensus(_ frame: Frame, now: Double) -> [CensusChange] {
         var changes: [CensusChange] = []
         var keep: [TowerSite] = []
 

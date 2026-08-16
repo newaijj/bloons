@@ -48,10 +48,10 @@ final class TowerWatcher {
     private(set) var sunkFromSells = 0
     private(set) var recentChanges: [String] = []
 
-    init(roundData: RoundData, library: SpriteLibrary, fps: Int) {
+    init(roundData: RoundData, library: SpriteLibrary) {
         self.roundData = roundData
         self.library = library
-        board = BoardWatcher(region: Regions.oppTrack, name: "opponent", fps: fps)
+        board = BoardWatcher(region: Regions.oppTrack, name: "opponent")
     }
 
     func retarget() {
@@ -64,6 +64,7 @@ final class TowerWatcher {
     func calibrate(frameWidth: Int) { board.calibrate(frameWidth: frameWidth) }
 
     var sceneChanges: Int { board.sceneChanges }
+    var trace: BoardWatcher.Trace { board.trace }
     var siteCount: Int { board.confirmedSites.count }
 
     /// Scan their board and revalue it. Returns human-readable change notes.

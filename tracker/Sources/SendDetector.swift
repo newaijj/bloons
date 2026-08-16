@@ -59,7 +59,7 @@ final class SendDetector {
     init(roundData: RoundData, fps: Int = 10) {
         self.roundData = roundData
         self.scanner = TrackScanner(region: Regions.myTrack, sampleStep: 4,
-                                    absorbAfterSeconds: 2.5, fps: fps)
+                                    absorbAfterSeconds: 2.5)
     }
 
     /// Re-point at your track after the side has been decided. Any burst state

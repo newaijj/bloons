@@ -1,0 +1,4 @@
+{"event": "map", "name": "salmon_ladder", "t": "2026-08-16T15:45:59.737Z"}
+{"event": "note", "text": "hero challenge vs TD, rounds 40, player on LEFT"}
+{"event": "place", "tower": "dart_monkey", "cost": 200, "screen_x": 560, "screen_y": 230, "t_before": "2026-08-16T15:47:45.374Z", "t_after": "2026-08-16T15:48:30.413Z", "t_placed": 163.2, "t_placed_source": "cash 3900->3950 between t=157.1 and t=163.2 (+250 eco -200 dart)", "note": "CONFIRMED by cash arithmetic, not by eye - a drag preview looks identical to a placed tower"}
+{"event": "note", "text": "tack_shooter and bomb_shooter labels removed earlier: both drags hit the defeat screen."}

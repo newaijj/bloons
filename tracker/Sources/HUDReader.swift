@@ -52,6 +52,18 @@ final class HUDReader {
         }
     }
 
+    /// Just your cash, for pinning a labelled placement to an exact frame.
+    ///
+    /// A driver's label brackets a click by tens of seconds, because it cannot
+    /// be written until the click has already gone through. But a tower costs a
+    /// known amount and the money leaves your pocket the instant it lands, so
+    /// the cash readout dates the placement far more precisely than the label
+    /// that describes it. Kept separate from `read` so scanning a whole session
+    /// for drops does not pay for OCR of names, lives, and send cards.
+    func cashOnly(_ image: CGImage) -> Int? {
+        parseInt(text(image, Regions.myCash))
+    }
+
     private func text(_ image: CGImage, _ region: HUDRegion) -> String {
         recognize(image, region.pixels(image.width, image.height), accurate: true)
             .map(\.0).joined(separator: " ")
@@ -118,11 +130,28 @@ final class HUDReader {
     ///
     /// This exists because a run latched the side off menu chrome 43 seconds
     /// before the board came up, and got it backwards.
+    /// Relax the two-lives requirement to one, for opponents whose lives are not
+    /// a number.
+    ///
+    /// Solo modes put an infinity glyph where a lives count goes — T.D. in Hero
+    /// Challenge renders `∞`, and the region OCRs as empty — so the two-lives
+    /// test can never pass and the tracker stays dark for the whole match. That
+    /// blocked not just live solo play but reading back any corpus recorded in
+    /// it: 754 recorded frames, every one rejected here.
+    ///
+    /// This is opt-in rather than the default because the strict test is load
+    /// bearing in two-player: requiring both lives is what kept a MENU from
+    /// latching a side 43 seconds before the board came up, and got it backwards
+    /// when it did. Solo runs force the side anyway, so the failure this guards
+    /// against is not reachable there.
+    static var soloMode = false
+
     func matchProbe(_ image: CGImage) -> (round: Int, topBarMirrors: Bool)? {
         for cand in Regions.roundCandidates {
             guard let r = probeRound(image, cand.region) else { continue }
-            guard parseInt(text(image, Regions.leftLives)) != nil,
-                  parseInt(text(image, Regions.rightLives)) != nil else { continue }
+            let left = parseInt(text(image, Regions.leftLives)) != nil
+            let right = parseInt(text(image, Regions.rightLives)) != nil
+            guard Self.soloMode ? (left || right) : (left && right) else { continue }
             return (r, cand.topBarMirrors)
         }
         return nil

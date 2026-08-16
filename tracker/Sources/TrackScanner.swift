@@ -32,11 +32,25 @@ import CoreGraphics
 final class TrackScanner {
     private var region: HUDRegion
     private let sampleStep: Int
-    private let absorbAfterFrames: Int
+    /// Absorption is measured in RECORDED SECONDS, off `Frame.time`, not in
+    /// frames. Counting frames tied the meaning of "held still for 2.5s" to the
+    /// rate frames happen to arrive at, so the same recording replayed at a
+    /// different rate absorbed at a different point — and a 20-frame capture
+    /// taken at 0.26fps could never absorb at all, because 2.5s at 10fps is 25
+    /// frames and there were only 20 in existence.
+    private let absorbAfterSeconds: Double
+    /// Stability also has to clear a minimum number of OBSERVATIONS. Time alone
+    /// is too cheap on a sparse recording: two samples 4s apart would satisfy a
+    /// 2.5s window while saying almost nothing about whether the pixel held
+    /// still in between.
+    private static let absorbMinObservations = 3
 
     private var bgR: [Double] = [], bgG: [Double] = [], bgB: [Double] = []
     private var prevR: [Double] = [], prevG: [Double] = [], prevB: [Double] = []
-    private var stableFor: [Int] = []
+    /// Frame time at which each sample last started holding still, or -1 when it
+    /// is not currently stable.
+    private var stableSince: [Double] = []
+    private var stableObs: [Int] = []
     private var gridW = 0, gridH = 0
     private let driftAlpha = 0.02
 
@@ -68,10 +82,10 @@ final class TrackScanner {
         var foreground: Int = 0
     }
 
-    init(region: HUDRegion, sampleStep: Int = 4, absorbAfterSeconds: Double = 2.5, fps: Int = 10) {
+    init(region: HUDRegion, sampleStep: Int = 4, absorbAfterSeconds: Double = 2.5) {
         self.region = region
         self.sampleStep = sampleStep
-        self.absorbAfterFrames = max(5, Int(absorbAfterSeconds * Double(fps)))
+        self.absorbAfterSeconds = absorbAfterSeconds
     }
 
     /// Point this scanner at a different region and throw away everything it
@@ -84,7 +98,7 @@ final class TrackScanner {
         gridW = 0; gridH = 0
         bgR = []; bgG = []; bgB = []
         prevR = []; prevG = []; prevB = []
-        stableFor = []
+        stableSince = []; stableObs = []
         absorbedEver = []; foregroundNow = []; bloonHits = []
     }
 
@@ -135,12 +149,14 @@ final class TrackScanner {
         prevR = .init(repeating: -1, count: n)
         prevG = .init(repeating: -1, count: n)
         prevB = .init(repeating: -1, count: n)
-        stableFor = .init(repeating: 0, count: n)
+        stableSince = .init(repeating: -1, count: n)
+        stableObs = .init(repeating: 0, count: n)
         absorbedEver = .init(repeating: false, count: n)
         foregroundNow = .init(repeating: false, count: n)
     }
 
     func scan(_ frame: Frame, allowed: Set<BloonType>) -> Result {
+        let now = frame.time
         let px = region.pixels(frame.width, frame.height)
         let x0 = Int(px.minX), y0 = Int(px.minY)
         let gw = Int(px.width) / sampleStep, gh = Int(px.height) / sampleStep
@@ -151,7 +167,8 @@ final class TrackScanner {
             let n = gw * gh
             bgR = .init(repeating: -1, count: n); bgG = .init(repeating: -1, count: n); bgB = .init(repeating: -1, count: n)
             prevR = .init(repeating: -1, count: n); prevG = .init(repeating: -1, count: n); prevB = .init(repeating: -1, count: n)
-            stableFor = .init(repeating: 0, count: n)
+            stableSince = .init(repeating: -1, count: n)
+            stableObs = .init(repeating: 0, count: n)
             absorbedEver = .init(repeating: false, count: n)
             foregroundNow = .init(repeating: false, count: n)
             bloonHits = .init(repeating: 0, count: n)
@@ -180,7 +197,8 @@ final class TrackScanner {
                     bgR[idx] += driftAlpha * (r - bgR[idx])
                     bgG[idx] += driftAlpha * (g - bgG[idx])
                     bgB[idx] += driftAlpha * (b - bgB[idx])
-                    stableFor[idx] = 0
+                    stableSince[idx] = -1
+                    stableObs[idx] = 0
                     prevR[idx] = r; prevG[idx] = g; prevB[idx] = b
                     continue
                 }
@@ -191,11 +209,14 @@ final class TrackScanner {
                 // frame rather than the background.
                 let frameDelta = abs(r - prevR[idx]) + abs(g - prevG[idx]) + abs(b - prevB[idx])
                 if frameDelta < 0.06 {
-                    stableFor[idx] += 1
-                    if stableFor[idx] >= absorbAfterFrames {
+                    if stableSince[idx] < 0 { stableSince[idx] = now }
+                    stableObs[idx] += 1
+                    if now - stableSince[idx] >= absorbAfterSeconds,
+                       stableObs[idx] >= Self.absorbMinObservations {
                         // Settled. Treat it as scenery from now on.
                         bgR[idx] = r; bgG[idx] = g; bgB[idx] = b
-                        stableFor[idx] = 0
+                        stableSince[idx] = -1
+                        stableObs[idx] = 0
                         // The background update above happens every time; the
                         // REPORT happens once. A sample that keeps cycling
                         // through here is animated scenery, not a tower being
@@ -210,7 +231,8 @@ final class TrackScanner {
                         continue
                     }
                 } else {
-                    stableFor[idx] = 0
+                    stableSince[idx] = -1
+                    stableObs[idx] = 0
                 }
                 prevR[idx] = r; prevG[idx] = g; prevB[idx] = b
 

@@ -7,6 +7,8 @@
 //   capture (SCStream, window-targeted)
 //     -> track scan: background-subtracted bloon colours on YOUR track
 //     -> send detection: colours the round does not schedule are their sends
+//     -> board census: occupancy against a plate of the empty board, on BOTH
+//        halves — theirs books their spending, yours prices the sprite library
 //     -> HUD OCR (throttled): round, your cash/eco, both lives, send cards
 //     -> income model: their eco, income, spend, and a cash ceiling
 //     -> click-through overlay

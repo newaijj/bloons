@@ -1,7 +1,20 @@
-// Background-subtracted scanning of one track.
+// Background-subtracted scanning of one track, for BLOONS.
 //
-// Used twice: on YOUR track to find the opponent's bloons, and on THEIR track to
-// find towers going down.
+// Used once, by SendDetector, on YOUR track: the bloon colours arriving there
+// are what the opponent sent you.
+//
+// It used to be used twice, the second time on THEIR track to find towers going
+// down, and the absorption machinery below was built for that job. It no longer
+// does it. On a real logged match, absorption-based detection found 0 of 13
+// opponent towers, because it could only ever see a tower ARRIVE — anything
+// standing before the tracker latched was invisible by design, and every scene
+// change wiped the board. Detection now lives in PlateCensus, which asks what is
+// standing there rather than what settled, and scores 10/13 and 9/11 held-out
+// across two maps. See eval/runs/.
+//
+// So read the absorption notes below as being about bloon/scenery separation on
+// your own track. They are still load-bearing for that. They are no longer any
+// part of how tower spending is observed.
 //
 // The subtlety is what counts as background. A first version only updated the
 // model on pixels that already looked like background, so bloons could not
@@ -12,8 +25,9 @@
 // The fix is to absorb by STABILITY rather than by appearance: a sample whose
 // colour stops changing for a couple of seconds is scenery, whatever it looks
 // like. Bloons move, so they never hold one pixel long enough to be absorbed.
-// Towers do — and the moment of absorption is itself the signal that something
-// was built, which is how tower spending becomes observable.
+// Towers do, so they leave the bloon counts alone once they have settled — which
+// is all this scanner needs from them now that it is not the thing detecting
+// them.
 //
 // Two things that signal needs before a caller can trust it:
 //

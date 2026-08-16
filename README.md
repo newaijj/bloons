@@ -145,6 +145,24 @@ cd tracker && ./tracker
 - `--dump auto|always|off` save frames for later study (default `auto`)
 - `--dump-max N` frame cap per session (default 20, ~4MB each)
 
+Recording a match as a replayable corpus:
+
+- `--record` write the session to `tracker/out/<session>/` with a manifest
+- `--record-all` keep every frame; without it recording is windowed around
+  ground-truth labels, which a real match has none of
+- `--record-fps N` recording rate (default 4). It is quantised to `--fps`, so
+  use `--fps 8` for a true 4 — at the default 10 you get 3.3
+- `--record-max N` frame cap (default 4000, ~2.9MB each)
+- `--record-note "..."` free text stored in the manifest
+
+Offline evaluation (see `eval/README.md`):
+
+- `--scan-cash <dir>` emit `file,t,cash,eco,round` per frame and exit. Eco is
+  what separates a tower purchase from a send, so cash alone cannot make labels
+- `--census-log <path>` write the per-frame census as JSONL during a replay, so
+  it can be scored rather than only read
+- `--solo` relax the match guard for Hero Challenge, whose opponent has `∞` lives
+
 Build with `swiftc -O Sources/*.swift -o tracker`. Needs Screen Recording
 permission for whatever launches it.
 
@@ -156,6 +174,8 @@ permission for whatever launches it.
 | `calibrate/` | frame grabber + full-frame OCR dump, used to map the HUD |
 | `probe/` | region-map verifier: annotated frame + per-second region CSV |
 | `data/btd6_derived_rounds.json` | round table, all 40 rounds |
+| `data/btdb2_costs.json` | published prices, read from the game — source of record |
+| `tools/gen_price_table.py` | regenerates `tracker/Sources/PriceTable.swift` from it |
 
 ## The round table
 
@@ -190,14 +210,19 @@ Validated:
 - eco tick period and payout ratio (above)
 - match guard: menus and lobby register no phantom sends
 - side detection from the panel column, and the mirrored layout it selects
-- census against synthetic frames, 7 scenarios: static ground, animated scenery
-  and a dense bloon stream all hold zero sites; a placed tower registers exactly
-  one, alone and with both distractors running; a match-start curtain is
-  reseeded through rather than billed, and a tower placed after it is still
-  caught; a sold tower leaves the census
+- tower detection, against **hand-labelled real matches** rather than synthetic
+  frames — see "Detecting the opponent's towers" below for the numbers
 - the sprite descriptor on real capture pixels: a separating gap exists between
   the same tower re-read (≤0.224) and different towers (≥0.302), and the library
   recalls a learned price, rejects a stranger, and survives a round trip to disk
+- the published price floor, which rejects **3–5 impossible learned prices per
+  replay** on each of the two labelled matches — see "The published price table"
+  below. The count varies between runs of the same binary over the same corpus,
+  which is a second finding and not yet explained.
+
+Implemented but **not yet exercised**: the census-floor falsifier
+(`sites × minPaidCost > cashCeiling`). Replays end with zero standing sites by
+construction, so only a live match can fire it.
 
 **Tower spend used to be unbounded and wrong** — a logged match had it reach
 $12,461 by round 2 against a cash ceiling of $2,302, 5.4× more than the opponent
@@ -209,8 +234,10 @@ the constraint that replaced it.
 footprint settled anywhere on their half: 51 samples out of the ~91,700 the
 region subsamples to, or **0.056%**, in any 2s window. Absorption also reset the
 background and left the sample free to absorb again, so animated scenery re-billed
-on every cycle. Absorption is now one-shot per sample, must form a compact
-tower-sized blob off the bloon path, and must still be settled seconds later.
+on every cycle. Absorption was made one-shot per sample, required to form a
+compact tower-sized blob off the bloon path, and required to still be settled
+seconds later — and it still detected **nothing at all** on real match data.
+Detection is no longer done this way; see the next section.
 
 *The footprint constant was ~10× too small.* The code assumed a 52px tower — near
 the placement footprint, not the drawn sprite. Diffing an empty board against one
@@ -225,8 +252,8 @@ whole board appeared, held still, and absorbed at once — **$7,980 in a single
 one-second row at t=38.4**, then near-silence for 55 seconds. Diffing the seed
 frame against the rest measures 64–70% of the half changed, permanently.
 Persistence cannot catch this: a scene change really is still settled three
-seconds later. Absorption above 2.5% of the board in one frame now reseeds
-instead of billing, and the count is in the log.
+seconds later. This lesson outlived the design that produced it — the plate
+detector faces the same problem when it seeds, and handles it differently.
 
 *Nothing tied the total to income.* They cannot spend money they never had, and
 both terms of what they had are recovered rather than estimated, so `cashCeiling`
@@ -239,6 +266,76 @@ standing, so a site that was never a tower leaves the total the moment it fails
 verification, and a **sold** tower leaves it too rather than being charged again
 as a purchase — the right magnitude with the wrong sign, which is what an event
 sum structurally produces.
+
+## Detecting the opponent's towers
+
+Their cash is never shown, so their board has no ground truth anywhere in the
+game. The detector is therefore developed against **your** half — where a cash
+drop with flat eco dates and prices every purchase exactly — and confirmed
+against hand-labelled checkpoints on theirs.
+
+**How it works.** `PlateCensus` keeps a *plate*: the board with nothing on it,
+taken from one frame at match start. Every cell is then scored on two axes over a
+rolling 2.5s window — *occupancy*, the fraction of the window it differs from the
+plate, and *flicker*, its mean frame-to-frame colour change. A tower is a region
+that is occupied and still. `BoardWatcher` turns those regions into sites with
+stable identities, and a site enters the books once it is 6 seconds old.
+
+This is a **state** query, not an event query, and that is the whole point. The
+absorption design it replaced could only see a tower *arrive*, so anything
+standing before the tracker latched was invisible by design and every scene
+change wiped the board.
+
+**Measured, held-out, parameters frozen** (`eval/runs/`):
+
+| | opponent recall | precision | placement null p95 |
+|---|---|---|---|
+| old absorption detector | 0 / 13 | — | — |
+| plate detector, match 1 (temple) | 10 / 13 | 83.3% | 23.1% |
+| plate detector, match 2 (desert, new opponent) | 9 / 11 | 90.0% | 63.6% |
+
+Match 2 was a pure replication: nothing tuned, different map, different opponent.
+Its null is high because that opponent only ever built three towers, and a sparse
+board is easy to hit by accident — the margin there is ~18 points, against ~54 on
+match 1.
+
+**What it gets wrong, and why the numbers are small.** Across both matches there
+are five misses: three are **firing towers** — a muzzle flash is exactly a large
+frame-to-frame change at a fixed spot, so the stillness test rejects it — one is
+two adjacent towers **merging** into a single blob, and one is **latency**, a
+tower found 1.8s after the checkpoint that scored it. Firing towers are the
+largest known weakness and the obvious thing to fix next.
+
+Eight unique towers in ~4 spatial clusters on one match, three on the other. The
+design resolves 0/13 versus 10/13 and nothing finer, so **one-tower differences
+are noise** and are reported as such.
+
+**Three things that will break it if you touch them.**
+
+- *Never reseed the plate on a scene change.* An overlay pushing occupancy to
+  ~44% once triggered a reseed from a frame with eight towers standing, baking
+  them into the background permanently — the board read 7 towers at t=315 and 0
+  at t=330. Suspend instead; a banner is transient and the plate underneath is
+  still good.
+- *But never suspend forever either.* Seeding during the match-start countdown,
+  which dims the whole screen, gives a plate that is geometrically perfect and
+  photometrically useless. Occupancy pins high and the detector never runs at
+  all. The two cases are told apart by **duration**: over 3s of high occupancy is
+  evidence about the plate, not the view.
+- *Flicker is sample-rate dependent.* It is a frame-to-frame delta, so a 10fps
+  live stream shrinks it 2–3× against the 4fps recordings every threshold was
+  measured on. Ingestion is throttled to 0.22s regardless of capture rate.
+
+**Rejected, with evidence.** A distance-transform blob splitter fixes the merge
+case and was still cut: on the second map it never fired at all (its size
+threshold does not transfer) while costing +62% and +75% site churn on the two
+matches. Two matches, consistent cost, no demonstrated benefit —
+`eval/runs/2026-08-16-peak-split.md` before reintroducing it.
+
+**Reproducing any of this** is `eval/README.md`. Every run has a preregistration
+written before the numbers were seen, and the ledger records the retractions too:
+flicker was claimed load-bearing and is not, and own-board arrival recall is a
+broken metric that must not be quoted.
 
 ## Pricing towers without the assets
 
@@ -294,9 +391,16 @@ verification, not by texture.
 Known limits:
 
 - **You only learn towers you build.** An opponent playing something you never
-  touch stays unpriced and falls back to blob area against a flat $400. Those
-  sites are counted as `tower_unpriced` and called out on the overlay rather
-  than being given a number that looks as earned as a learned one.
+  touch stays unpriced and falls back to the published median base cost, $475
+  flat. Those sites are counted as `tower_unpriced` and called out on the overlay
+  rather than being given a number that looks as earned as a learned one. The
+  fallback used to scale blob area against $400, spanning $240–$1200; tested
+  against the learned library, area vs cumulative cost came out at **r = −0.219,
+  n = 6** — wrong sign, and far too few points to read as a real negative. The
+  multiplier was carrying no information, so the spread it produced was noise
+  dressed as detail. n = 6 has not settled this; the upgrade path is to take the
+  prior from the distribution of learned costs once the library is big enough to
+  have one, which needs no table at all.
 - **The sell refund ratio is assumed at 75%**, not measured, until a sell on your
   own board pairs with a cash rise. The pairing is implemented; it has not yet
   fired on a real match.
@@ -316,3 +420,78 @@ Known limits:
   cannot exercise a 6s tick or the 2.5s settle window. The census reports zero
   sites under replay for the same reason — a site needs a 3s settle window and
   two confirmations 2s apart — and that zero is correct rather than broken.
+
+## The published price table, and what it is not for
+
+`data/btdb2_costs.json` holds every price the game charges: 22 base tower costs
+and all 330 upgrades. The upgrade costs were read **out of the game itself** at
+v4.13 — the Monkeys menu prints `INGAME COST` for whichever upgrade is selected,
+and locked towers still show theirs, so an account owning four starters can read
+all 22 trees. `tools/gen_price_table.py` compiles the JSON into
+`tracker/Sources/PriceTable.swift`; edit the JSON, never the Swift.
+
+Blooncyclopedia agreed on **324 of 330**. That is worth stating plainly, because
+it means the wiki was not the problem — but the six exceptions are the reason to
+read the game anyway, and none of them is a wrong number:
+
+| slot | what the wiki has | what the game charges |
+|---|---|---|
+| Banana Farm p3t1 | EZ Collect $250 **and** Quality Soil $400 | Quality Soil, **$400** |
+| Ice Monkey p1t2 | Metal Freeze $300 **and** Cold Snap $350 | Cold Snap, **$350** |
+| Monkey Ace p3t2 | Centered Path **and** Advanced Navigation, both $300 | **$300** either way |
+| Monkey Village p3t3 | Monkeyconomy $1500 **and** Monkey Town $5000 | Monkeyconomy, **$1500** |
+| Mortar p3t1 | Increased Accuracy $200 **and** Dynamic Targeting $400 | Dynamic Targeting, **$400** |
+| Monkey Village p3t5 | Monkeyopolis, flat $20000 | **20000 + 5000 × villages absorbed** |
+
+Five slots carry a retired upgrade alongside the live one, so a join on
+tower/path/tier picks wrong about half the time and never says so. The sixth is
+not a constant at all.
+
+**Base costs are still wiki-sourced for 19 of 22.** The tower menu prices
+upgrades but never the tower, and the in-match shop shows only the three monkeys
+in your loadout. Verified in-game: Dart $200, Tack $280, Bomb $525 — all matching
+the wiki. Every entry in the JSON carries its own `source`.
+
+### It bounds the census; it does not price it
+
+Pricing stays with the learned sprite library, because the table is keyed by
+tower NAME and the descriptor deliberately cannot produce one. What the table
+adds is a legal range, which catches a whole class of bug for free: a number no
+legal board could produce is wrong without anyone knowing the right answer.
+
+**The floor is not the sticker price.** Monkey Business takes 5% off monkeys in
+radius and Monkey Commerce adds 5% *"stacking with up to 2 other Villages"* —
+20% at the limit. So the cheapest real purchase is 80% of the cheapest tower:
+`minPaidCost = 80`, not the $100 Glue Gunner list price. A floor set at the
+sticker deletes true observations of a village-discounted board. `minTowerCost`
+is the sticker and bounds nothing.
+
+Two checks run off it:
+
+- **A learned price below the floor is a mispaired cash move.** Rejected at
+  `learn`, and purged from `sprites.json` at load. On the two recorded matches
+  this drops a stored $24 entry and rejects **3–5 more per replay** at $24–$40 —
+  the harvester's cash↔board pairing produces impossible prices several times a
+  match, which the library was previously absorbing in silence.
+
+  **The count is not reproducible.** The same binary over the same corpus gave
+  4 then 5 rejections on `152152`, and 3 then 4 on `124547`. Replays are supposed
+  to be deterministic, and the books block was made byte-identical across
+  concurrent runs earlier (see Status). Something in the census or the harvester
+  still is not, and the cause is **not yet identified** — the known hash-seed
+  nondeterminism is in `SendDetector`'s `Set` iteration, which does not obviously
+  reach the harvester. Until that is understood, treat rejection counts as
+  indicative and never as a metric to tune against.
+- **`sites × minPaidCost > cashCeiling` falsifies the site COUNT.** Strictly
+  stronger than the existing affordability clip: clipping can mean the fallback
+  price is too high, but a floor breach cannot — it says more towers are being
+  reported than any board could hold at any price, so the surplus is false
+  positives. Nothing about the learned pricing enters it, which is what makes it
+  a test of the detector rather than of the library.
+
+**DEAD: snapping an estimated price to the nearest legal value.** The lattice of
+legal cumulative costs has 838 distinct values with a median gap of $15 below
+$3000, so **84.1% of all integers in $100–$3000 sit within $10 of one** (54.5%
+within $5). Agreement with it is evidence of nothing, and a confidence score
+built on it would read near-perfect on noise. Exact data did not change this —
+the lattice is dense because the game has many cheap upgrades.

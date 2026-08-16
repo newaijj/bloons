@@ -104,6 +104,25 @@ struct HSB {
         self.b = maxV
     }
 
+    /// Back to linear channels. Classification works in HSB, but the background
+    /// model and the sprite descriptor both compare colours by summed channel
+    /// difference, and every threshold either one uses was measured that way.
+    var rgb: (r: Double, g: Double, b: Double) {
+        let c = self.b * s
+        let x = c * (1 - abs((h / 60).truncatingRemainder(dividingBy: 2) - 1))
+        let m = self.b - c
+        let (r, g, bl): (Double, Double, Double)
+        switch h {
+        case ..<60:  (r, g, bl) = (c, x, 0)
+        case ..<120: (r, g, bl) = (x, c, 0)
+        case ..<180: (r, g, bl) = (0, c, x)
+        case ..<240: (r, g, bl) = (0, x, c)
+        case ..<300: (r, g, bl) = (x, 0, c)
+        default:     (r, g, bl) = (c, 0, x)
+        }
+        return (r + m, g + m, bl + m)
+    }
+
     func matches(_ type: BloonType) -> Bool {
         let floor = type.satBrightFloor
         guard s >= floor.sat, b >= floor.bright else { return false }

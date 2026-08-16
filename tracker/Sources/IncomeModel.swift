@@ -98,11 +98,18 @@ struct OpponentBooks {
     var sendSpend: Double = 0
     /// Tower spend after the affordability bound. Never exceeds `cashCeiling`.
     var towerSpend: Double = 0
-    /// What the detector claimed before the bound was applied. Equal to
-    /// `towerSpend` when nothing has been clipped; larger means the detector is
-    /// asserting purchases the opponent could not have made.
+    /// What the census valued the board at before the bound was applied. Equal
+    /// to `towerSpend` when nothing has been clipped; larger means the census is
+    /// asserting a board they could not have paid for.
     var towerSpendRaw: Double = 0
-    var clippedBuilds: Int = 0
+    /// Census cycles where the affordability bound bit. Sustained clipping says
+    /// the census is over-reading, not that they are broke.
+    var towerClips: Int = 0
+    /// Sites priced from the learned sprite library, versus sites counted at a
+    /// fallback estimate. The second number is how much of the tower figure is
+    /// still guesswork.
+    var towerSitesPriced: Int = 0
+    var towerSitesUnpriced: Int = 0
     var sendsDetected: Int = 0
     var lowConfidenceSends: Int = 0
     var buildCount: Int = 0
@@ -231,28 +238,30 @@ final class IncomeModel {
 
     func recentSends(_ n: Int) -> [SendEvent] { Array(sendLog.suffix(n).reversed()) }
 
-    /// Charge one build against their books, bounded by what they could
-    /// possibly have had to spend at that moment.
+    /// Take the census's valuation of their board, bounded by what they could
+    /// possibly have spent.
     ///
-    /// Called per event rather than being handed a running total, because the
-    /// bound is only meaningful at the instant of the purchase — `cashCeiling`
-    /// grows with income, so a total reconciled once at the end would let an
-    /// early impossible build hide behind later earnings.
+    /// This SETS rather than adds, which is the whole reason the census exists.
+    /// The previous design charged each detected build onto a running total, so
+    /// a false positive was permanent and error only ever grew. A valuation is
+    /// recomputed from the sites currently standing, so a bad reading costs a
+    /// few seconds and then corrects itself — and a sold tower leaves the total
+    /// instead of being charged again as a purchase.
     ///
-    /// Builds before the model is seeded are dropped rather than charged: until
-    /// their starting position is known there is nothing to charge against, and
-    /// a zero ceiling would clip every one of them to nothing anyway. The tower
-    /// watcher's own settle window covers roughly the same opening seconds.
-    func noteBuild(_ event: BuildEvent) {
+    /// The bound is unchanged in spirit: they cannot have paid for a board worth
+    /// more than everything they have earned less what they spent on sends. With
+    /// a set-valued total it can be applied on every cycle rather than per
+    /// event, and clipping that persists is now a statement that the census is
+    /// over-reading rather than a one-off.
+    func noteTowerValuation(_ v: BoardValuation) {
         guard isSeeded else { return }
-        let asked = Double(event.estimatedCost)
-        let headroom = max(0, books.cashCeiling - books.towerSpend)
-        let charged = min(asked, headroom)
-
-        books.towerSpendRaw += asked
-        books.towerSpend += charged
-        books.buildCount += 1
-        if charged < asked - 0.5 { books.clippedBuilds += 1 }
+        let asked = Double(v.total)
+        books.towerSpendRaw = asked
+        books.towerSpend = min(asked, books.cashCeiling)
+        books.buildCount = v.sites
+        books.towerSitesPriced = v.pricedSites
+        books.towerSitesUnpriced = v.unpricedSites
+        if books.towerSpend < asked - 0.5 { books.towerClips += 1 }
     }
 
     /// Whether they can cover a price, on the best estimate of what they hold.

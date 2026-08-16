@@ -109,6 +109,37 @@ final class TrackScanner {
         idx < bloonHits.count && bloonHits[idx] >= Self.pathHits
     }
 
+    /// Total samples in the region, so a caller can judge an absorption count
+    /// as a fraction of the board rather than as a bare number.
+    var sampleCount: Int { gridW * gridH }
+
+    /// Throw the background model away and reseed from the next frame, without
+    /// forgetting where the path runs.
+    ///
+    /// For whole-scene changes. The background is seeded from ONE frame, and if
+    /// that frame is not the settled board — the match-start curtain, a panel
+    /// opening over the track, the end-of-match screen — then everything the
+    /// seed hid becomes foreground at once, holds still, and absorbs as one
+    /// mass event. Persistence cannot reject it, because a scene change is
+    /// permanent: the board really is still settled three seconds later. The
+    /// only defence is to notice the scale of it and reseed.
+    ///
+    /// Path knowledge survives: where the bloons walk does not change when the
+    /// curtain lifts.
+    func declareSceneChange() {
+        let n = gridW * gridH
+        guard n > 0 else { return }
+        bgR = .init(repeating: -1, count: n)
+        bgG = .init(repeating: -1, count: n)
+        bgB = .init(repeating: -1, count: n)
+        prevR = .init(repeating: -1, count: n)
+        prevG = .init(repeating: -1, count: n)
+        prevB = .init(repeating: -1, count: n)
+        stableFor = .init(repeating: 0, count: n)
+        absorbedEver = .init(repeating: false, count: n)
+        foregroundNow = .init(repeating: false, count: n)
+    }
+
     func scan(_ frame: Frame, allowed: Set<BloonType>) -> Result {
         let px = region.pixels(frame.width, frame.height)
         let x0 = Int(px.minX), y0 = Int(px.minY)
@@ -132,7 +163,7 @@ final class TrackScanner {
             for gx in 0..<gw {
                 let idx = gy * gw + gx
                 guard let hsb = frame.hsb(x: x0 + gx * sampleStep, y: py) else { continue }
-                let (r, g, b) = hsbToRGB(hsb)
+                let (r, g, b) = hsb.rgb
 
                 if bgR[idx] < 0 {
                     bgR[idx] = r; bgG[idx] = g; bgB[idx] = b
@@ -194,19 +225,4 @@ final class TrackScanner {
         return out
     }
 
-    private func hsbToRGB(_ c: HSB) -> (Double, Double, Double) {
-        let cVal = c.b * c.s
-        let x = cVal * (1 - abs((c.h / 60).truncatingRemainder(dividingBy: 2) - 1))
-        let m = c.b - cVal
-        let (r, g, b): (Double, Double, Double)
-        switch c.h {
-        case ..<60:  (r, g, b) = (cVal, x, 0)
-        case ..<120: (r, g, b) = (x, cVal, 0)
-        case ..<180: (r, g, b) = (0, cVal, x)
-        case ..<240: (r, g, b) = (0, x, cVal)
-        case ..<300: (r, g, b) = (x, 0, cVal)
-        default:     (r, g, b) = (cVal, 0, x)
-        }
-        return (r + m, g + m, b + m)
-    }
 }

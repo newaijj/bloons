@@ -141,6 +141,7 @@ cd tracker && ./tracker
 - `--replay <dir>` push recorded PNGs through the live pipeline
 - `--fps N` capture rate (default 10)
 - `--side left|right` skip panel detection and force an orientation
+- `--sprites <path>` learned tower prices (default `sprites.json` beside the binary)
 - `--dump auto|always|off` save frames for later study (default `auto`)
 - `--dump-max N` frame cap per session (default 20, ~4MB each)
 
@@ -189,82 +190,129 @@ Validated:
 - eco tick period and payout ratio (above)
 - match guard: menus and lobby register no phantom sends
 - side detection from the panel column, and the mirrored layout it selects
-- build detection against synthetic frames: static ground, animated scenery, and
-  a dense bloon stream all register zero builds; a placed tower registers
-  exactly one, alone and with both distractors running
+- census against synthetic frames, 7 scenarios: static ground, animated scenery
+  and a dense bloon stream all hold zero sites; a placed tower registers exactly
+  one, alone and with both distractors running; a match-start curtain is
+  reseeded through rather than billed, and a tower placed after it is still
+  caught; a sold tower leaves the census
+- the sprite descriptor on real capture pixels: a separating gap exists between
+  the same tower re-read (≤0.224) and different towers (≥0.302), and the library
+  recalls a learned price, rejects a stranger, and survives a round trip to disk
 
 **Tower spend used to be unbounded and wrong** — a logged match had it reach
 $12,461 by round 2 against a cash ceiling of $2,302, 5.4× more than the opponent
-could possibly have earned. Two independent causes, both now fixed.
+could possibly have earned. It is now a census rather than a running total, which
+is the structural fix; the history is worth keeping because each failure taught
+the constraint that replaced it.
 
-*The signal did not mean what it claimed.* `TowerWatcher` fired whenever 60% of
-a footprint settled anywhere on their half: 51 samples out of the ~91,700 the
+*The signal did not mean what it claimed.* `TowerWatcher` fired whenever 60% of a
+footprint settled anywhere on their half: 51 samples out of the ~91,700 the
 region subsamples to, or **0.056%**, in any 2s window. Absorption also reset the
-background and left the sample free to absorb again, so animated water, flags,
-and shadows re-billed on every cycle, as did a dense bloon stream holding one
-pixel the same colour. It sat pinned at its own 1.5s rate limit, worth about
-$16k/minute. Four tests now stand between an absorption and a charge: only a
-sample's **first** absorption counts, the samples must form one **compact**
-tower-sized blob rather than a drizzle, the blob must sit **off the path** the
-bloons walk, and it must still be **settled** three seconds later. Persistence
-does the most work — a tower is still there three seconds on, and nothing else
-on the map is.
+background and left the sample free to absorb again, so animated scenery re-billed
+on every cycle. Absorption is now one-shot per sample, must form a compact
+tower-sized blob off the bloon path, and must still be settled seconds later.
 
-Note that the suppression window at match start this file previously called for
-would not have helped. `retarget()` throws the background model away and the
-next frame reseeds it from whatever is on screen, so their existing board is
-already free — the bleed was a constant drizzle all match, not an opening
-avalanche.
+*The footprint constant was ~10× too small.* The code assumed a 52px tower — near
+the placement footprint, not the drawn sprite. Diffing an empty board against one
+with towers measured **613 and 1053 samples, 120×148 and 168×268 px**. The shape
+gate had been accepting blobs an order of magnitude below any real tower.
+
+*A single frame seeded the background, and at match start that frame is a
+curtain.* Session `20260815T232736` shows it: the tracker latched at t=30.4 the
+moment the round counter read `1/40`, but the match-start doors were still closed,
+so the background was seeded from them. Two seconds later they slid away, the
+whole board appeared, held still, and absorbed at once — **$7,980 in a single
+one-second row at t=38.4**, then near-silence for 55 seconds. Diffing the seed
+frame against the rest measures 64–70% of the half changed, permanently.
+Persistence cannot catch this: a scene change really is still settled three
+seconds later. Absorption above 2.5% of the board in one frame now reseeds
+instead of billing, and the count is in the log.
 
 *Nothing tied the total to income.* They cannot spend money they never had, and
 both terms of what they had are recovered rather than estimated, so `cashCeiling`
-is a hard bound. It is now applied per build at the moment of the build — not
-reconciled once at the end, where an early impossible build could hide behind
-later earnings. Clipping is counted and surfaced rather than hidden: `cash` was
-`max(0, …)` around an unbounded estimate, which silently absorbed the
-contradiction. A rising `builds_clipped` now says the detector is running hot,
-and the CSV carries the pre-bound total beside the bounded one so the two can be
-compared against a real match.
+is a hard bound. `cash` was `max(0, …)` around an unbounded estimate, which
+silently absorbed the contradiction; clipping is now counted and surfaced.
 
-**Send counts are the weak term.** Converting pixel area to a bloon count
-requires knowing how many bloons are on screen at once, which depends entirely on
-how fast the defence is popping them — and nothing on screen reveals that. Every
-calibration point in the logged match is contaminated by sends, an unknown pop
-rate, or both. `--visible-fraction` exposes the constant; the default is an
-estimate with a wide error bar, and eco/send-spend inherit that error.
+*And an event sum can never come back down.* Every false positive was permanent,
+so error only grew. Board value is now recomputed from the sites currently
+standing, so a site that was never a tower leaves the total the moment it fails
+verification, and a **sold** tower leaves it too rather than being charged again
+as a purchase — the right magnitude with the wrong sign, which is what an event
+sum structurally produces.
 
-The fix is to count *time* instead of area. Sends dispatch at a fixed cadence,
-and your own outgoing queue on the centre divider visibly drains at exactly that
-cadence — so a type's presence duration divided by per-send dispatch time yields
-a count that never depends on the pop rate. Not yet built.
+## Pricing towers without the assets
+
+The encrypted asset catalogue was treated three times in this file as the reason
+tower pricing is unknowable. It is not the obstacle it looked like, because the
+game already shows you every price you need — on your own HUD, in cash.
+
+Your cash is parsed every frame, and money leaves your pocket in exactly two
+ways. A send also **raises your eco**; a tower does not. So a cash drop with flat
+eco is a tower purchase of exactly that amount, to the dollar, with nothing
+estimated. Pair it with whatever changed on your board at that moment and you
+have a sprite labelled with a price. `sprites.json` persists beside the binary,
+so the library fills itself in across matches.
+
+Entries store **cumulative** cost — everything sunk into a tower that currently
+looks like this — which is what makes board value a pure function of the census
+rather than a sum of transitions.
+
+The descriptor is deliberately not a classifier of tower names. It only answers
+"is this the same appearance I priced before", and is built from a hue histogram,
+concentric saturation and brightness rings, outline darkness, and edge density —
+every component rotation-invariant, because towers turn to face their target.
+
+Measured separation on real capture pixels, three towers across three frames:
+
+| | distance |
+|---|---|
+| same tower, re-read 15s later | ≤ **0.224** (5 pairs) |
+| different towers | ≥ **0.302** (16 pairs) |
+
+The match threshold sits in that gap at 0.26. It was 0.16 first, below the noise
+floor, which made a tower fail to match *itself* and every site read as unpriced.
+Treat the numbers as provisional: one map, one dump, and the largest
+within-distance may itself be a real upgrade rather than noise, which would mean
+the gap is wider than it looks.
+
+Texture is what separates a sprite from a transition, and it needs no library at
+all. Labelled regions of a real frame:
+
+| region | edge density |
+|---|---|
+| match-start curtain | **0.005** |
+| bare map | 0.068 |
+| tower sprites | **0.131 – 0.334** |
+| dense bloon stream | 0.366 |
+
+The curtain is rejected by two orders of magnitude, which is the entire $11,820
+burst gone on one test. Bloons are **not** separable this way — a dense stream has
+a hard edge at every boundary and scores highest of anything measured. They are
+excluded by the path mask, by moving between censuses, and by failing descriptor
+verification, not by texture.
 
 Known limits:
 
-- **Tower spend is estimated, and the cost model is the weak half.** Detection
-  is now gated well enough to mean something; pricing is not. Identifying which
-  tower and which upgrade tier needs the asset catalogue, which the game ships
-  encrypted, so cost is blob area scaled against a flat $400 — `shopPrices` is
-  declared and read but nothing populates it. The overlay shows the cash ceiling
-  alongside the estimate so the size of the assumption stays visible.
-
-  The fix is the same move the eco constants already make: your own cash is on
-  the HUD, so a drop that isn't a send is a tower purchase of *exactly* that
-  amount. Pairing your cash drops with the blobs they produce on your own track
-  yields labelled (area, price) pairs live — this match, this map, this
-  resolution — and reveals the exact price points in play, so their blob can snap
-  to a real catalogue instead of scaling a guess. Not yet built.
-- **Builds, upgrades, and sells are charged identically**, and a sell has the
-  wrong sign — it returns cash but registers as a purchase. Separating them needs
-  a per-site tier model: a blob at a virgin location is a new tower, one
-  overlapping a known site is an upgrade, and a site reverting to its
-  match-start background is a sell. For now a confirmed site suppresses repeat
-  charges for 8s, which biases toward under-counting.
+- **You only learn towers you build.** An opponent playing something you never
+  touch stays unpriced and falls back to blob area against a flat $400. Those
+  sites are counted as `tower_unpriced` and called out on the overlay rather
+  than being given a number that looks as earned as a learned one.
+- **The sell refund ratio is assumed at 75%**, not measured, until a sell on your
+  own board pairs with a cash rise. The pairing is implemented; it has not yet
+  fired on a real match.
+- **Adjacent tiers within one path are the confusable case.** The two snipers in
+  the capture are wildly different and separate easily, but a 3-0-0 against a
+  4-0-0 may not, which bounds tier accuracy without breaking the approach.
+- **Pairing a cash drop to a board change is nearest-in-time**, over a 12s
+  window. Two purchases in quick succession can be matched to each other's
+  sprites; the library averages repeated observations, so this dilutes rather
+  than corrupts, but it is not exact.
 - A send of a type the round also spawns naturally is a weaker signal, caught
   only as an excess over the scheduled count. Marked `?`, scored 0.45.
 - Card position→type assumes an unscrolled send menu, which holds while fewer
   than five sends are unlocked.
 - Selecting one of your towers opens a panel that covers the opponent's track.
 - `--replay` validates parsing, not dynamics: frames captured seconds apart
-  cannot exercise a 6s tick or the 2.5s settle window. Builds report zero under
-  replay for the same reason — a build must survive a 3s settle window and a 3s
-  persistence check — and that zero is correct rather than broken.
+  cannot exercise a 6s tick or the 2.5s settle window. The census reports zero
+  sites under replay for the same reason — a site needs a 3s settle window and
+  two confirmations 2s apart — and that zero is correct rather than broken.

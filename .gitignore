@@ -11,3 +11,7 @@
 /tracker/run.out
 
 .DS_Store
+
+# Learned tower prices. Machine-generated, grows across matches, and specific
+# to your resolution — rebuild it by playing rather than sharing it.
+/tracker/sprites.json

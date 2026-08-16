@@ -27,6 +27,9 @@ struct Options {
     var logPath: String?
     var fps = 10
     var dataPath = "../data/btd6_derived_rounds.json"
+    /// Learned tower prices. Lives next to the binary by default so it survives
+    /// rebuilds and accumulates across matches.
+    var libraryPath: String?
     /// Skip panel detection and force an orientation. Mainly for exercising the
     /// mirrored path, which no captured frame exhibits.
     var forcedSide: PlayerSide?
@@ -45,6 +48,7 @@ func parseOptions() -> Options {
         case "--log":      o.logPath = it.next()
         case "--fps":      o.fps = Int(it.next() ?? "10") ?? 10
         case "--data":     o.dataPath = it.next() ?? o.dataPath
+        case "--sprites":  o.libraryPath = it.next()
         case "--replay":   _ = it.next()   // handled before startup
         case "--visible-fraction":
             if let v = Double(it.next() ?? "") { SendDetector.visibleFraction = v }
@@ -84,6 +88,13 @@ func resolveDataPath(_ p: String) -> String? {
     return nil
 }
 
+/// Sprite library beside the binary unless told otherwise.
+func resolveLibraryPath(_ p: String?) -> String {
+    if let p { return p }
+    return URL(fileURLWithPath: CommandLine.arguments[0])
+        .deletingLastPathComponent().appendingPathComponent("sprites.json").path
+}
+
 guard let dataPath = resolveDataPath(opts.dataPath), let roundData = RoundData(path: dataPath) else {
     print("""
     Could not load the round table.
@@ -95,7 +106,12 @@ print("round table: \(roundData.loadedRounds) rounds from \(dataPath)")
 
 let hud = HUDReader()
 let detector = SendDetector(roundData: roundData, fps: opts.fps)
-let towers = TowerWatcher(roundData: roundData, fps: opts.fps)
+/// Tower prices, learned on your own board and kept across matches — a library
+/// that reset each launch would never get past whatever you built in the first
+/// two minutes.
+let spriteLibrary = SpriteLibrary(path: resolveLibraryPath(opts.libraryPath))
+let towers = TowerWatcher(roundData: roundData, library: spriteLibrary, fps: opts.fps)
+let harvester = SpriteHarvester(roundData: roundData, library: spriteLibrary, fps: opts.fps)
 let model = IncomeModel(roundData: roundData)
 let capture = WindowCapture()
 let sideDetector = SideDetector()
@@ -148,10 +164,13 @@ if let lp = opts.logPath {
     // New columns are appended, never inserted, so existing indices stay put.
     // `side` is empty until the side latches, so a row can never claim an
     // orientation that was merely the default rather than a decision.
-    // `opp_tower_raw` and `builds_clipped` expose the gap between what the tower
-    // detector claimed and what the affordability bound allowed — the pair is
-    // how you tune the detector against a real match.
-    logHandle?.write("t,round,my_cash,my_eco,opp_eco,opp_eco_income,opp_send_spend,opp_tower_spend,opp_cash,opp_cash_ceiling,sends,tick_period,payout_ratio,trk_red,trk_blue,trk_green,trk_yellow,trk_pink,side,opp_tower_raw,builds_clipped\n".data(using: .utf8)!)
+    // `opp_tower_raw` and `tower_clips` expose the gap between what the census
+    // valued the board at and what the affordability bound allowed — the pair is
+    // how you tune it against a real match. `tower_unpriced` says how much of
+    // the tower figure is still a fallback guess rather than a learned price,
+    // and `scene_changes` counts whole-board transitions the scanner reseeded
+    // through; a run with many deserves suspicion.
+    logHandle?.write("t,round,my_cash,my_eco,opp_eco,opp_eco_income,opp_send_spend,opp_tower_spend,opp_cash,opp_cash_ceiling,sends,tick_period,payout_ratio,trk_red,trk_blue,trk_green,trk_yellow,trk_pink,side,opp_tower_raw,tower_clips,tower_sites,tower_unpriced,scene_changes,library\n".data(using: .utf8)!)
 }
 
 // Shared state between the capture queue and the main thread.
@@ -216,12 +235,16 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     lines.append(OverlayLine(text: "", style: .dim))
     lines.append(OverlayLine(text: "generated   \(formatMoney(b.totalGenerated))", style: .key))
     lines.append(OverlayLine(text: "into sends  \(formatMoney(b.sendSpend))  (\(String(format: "%.0f%%", b.ecoShare * 100)))", style: .key))
-    lines.append(OverlayLine(text: "into towers \(formatMoney(b.towerSpend))  (\(b.buildCount) builds)", style: .key))
+    lines.append(OverlayLine(text: "into towers \(formatMoney(b.towerSpend))  (\(b.buildCount) on board)", style: .key))
     lines.append(OverlayLine(text: "if they'd built nothing: \(formatMoney(b.cashCeiling))", style: .dim))
-    lines.append(OverlayLine(text: "tower cost is estimated from footprint", style: .dim))
-    // The bound firing is a statement about the detector, not about them.
-    if b.clippedBuilds > 0 {
-        lines.append(OverlayLine(text: "\(b.clippedBuilds) builds clipped to affordable — tower estimate is running hot", style: .warn))
+    if b.towerSitesUnpriced > 0 {
+        lines.append(OverlayLine(text: "\(b.towerSitesUnpriced) of \(b.buildCount) towers unpriced — estimated, not learned", style: .dim))
+    } else if b.buildCount > 0 {
+        lines.append(OverlayLine(text: "all towers priced from the learned library", style: .dim))
+    }
+    // The bound firing is a statement about the census, not about them.
+    if b.towerClips > 0 {
+        lines.append(OverlayLine(text: "board valued above affordable — clipped (\(b.towerClips) cycles)", style: .warn))
     }
 
     if !model.calibrator.calibrated {
@@ -259,6 +282,7 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     Regions.adopt(side: side, topBarMirrors: topBarMirrors)
     detector.retarget()
     towers.retarget()
+    harvester.retarget()
     hud.resetHistory()
     // An overturned latch means everything booked so far was read off the wrong
     // half of the screen. Their eco, their spend, the calibrated tick — all of
@@ -303,6 +327,7 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     if n == 1 {
         detector.calibrate(frameWidth: frame.width)
         towers.calibrate(frameWidth: frame.width)
+        harvester.calibrate(frameWidth: frame.width)
         if frameDump.armsImmediately {
             frameDump.arm(reason: "--dump always", note: layoutNote())
         }
@@ -400,22 +425,27 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     detector.noteRound(round)
     detector.setAvailable(cards: current.sendCards)
     let events = detector.update(counts: counts, cards: current.sendCards)
-    let newBuilds = towers.update(frame, round: round)
-    // Books before builds: a build is charged against what they could afford at
-    // that instant, and this frame's income has to be in before that is right.
+    let boardNotes = towers.update(frame, round: round)
+    // Your own board, watched only to learn what sprites cost. Your cash gives
+    // the exact figure, so this is the one place in the whole pipeline where a
+    // price is known rather than estimated.
+    if let cash = current.myCash, let eco = current.myEco { harvester.observe(cash: cash, eco: eco) }
+    let learnNotes = harvester.update(frame, round: round)
+
+    // Books before valuation: the bound a board is judged against needs this
+    // frame's income already in.
     model.update(snap: current, events: events)
-    for b in newBuilds { model.noteBuild(b) }
-    let clipped = model.books.clippedBuilds
+    model.noteTowerValuation(towers.valuation)
+    let clips = model.books.towerClips
     state.lock.unlock()
 
-    for bd in newBuilds {
-        print("  build: ~\(formatMoney(Double(bd.estimatedCost))) @R\(bd.round) (\(bd.samples) samples)")
-    }
-    // Clipping means the detector claimed a purchase they could not have made,
-    // which is a detector problem — so it is surfaced rather than swallowed.
-    if !newBuilds.isEmpty, clipped > lastClippedSeen {
-        lastClippedSeen = clipped
-        print("  note: build cost clipped to what they could afford (\(clipped) so far)")
+    for n in boardNotes { print("  \(n)") }
+    for n in learnNotes { print("  \(n)") }
+    // Sustained clipping means the census is valuing a board they could not have
+    // paid for — a census problem, surfaced rather than swallowed.
+    if clips > lastClippedSeen, clips % 10 == 0 || lastClippedSeen == 0 {
+        lastClippedSeen = clips
+        print("  note: board valued above what they could afford — clipped (\(clips) cycles)")
     }
 
     if !events.isEmpty {
@@ -465,7 +495,11 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
         }
         fields.append(Regions.latched ? Regions.mySide.rawValue : "")
         fields.append(String(format: "%.0f", b.towerSpendRaw))
-        fields.append(String(b.clippedBuilds))
+        fields.append(String(b.towerClips))
+        fields.append(String(b.buildCount))
+        fields.append(String(b.towerSitesUnpriced))
+        fields.append(String(towers.sceneChanges))
+        fields.append(String(spriteLibrary.count))
         lh.write((fields.joined(separator: ",") + "\n").data(using: .utf8)!)
     }
 }
@@ -501,6 +535,7 @@ func runReplay(_ dir: String) -> Never {
         if i == 0 {
             detector.calibrate(frameWidth: frame.width)
             towers.calibrate(frameWidth: frame.width)
+            harvester.calibrate(frameWidth: frame.width)
         }
 
         // Same rule as live: nothing is attributed to anybody until the side is
@@ -538,9 +573,11 @@ func runReplay(_ dir: String) -> Never {
         if let r = snap.round { detector.noteRound(r) }
         detector.setAvailable(cards: snap.sendCards)
         let events = detector.update(counts: counts, cards: snap.sendCards)
-        let newBuilds = towers.update(frame, round: snap.round ?? 0)
+        towers.update(frame, round: snap.round ?? 0)
+        if let c = snap.myCash, let e = snap.myEco { harvester.observe(cash: c, eco: e) }
+        harvester.update(frame, round: snap.round ?? 0)
         model.update(snap: snap, events: events)
-        for b in newBuilds { model.noteBuild(b) }
+        model.noteTowerValuation(towers.valuation)
 
         let cards = snap.sendCards
             .map { "\($0.type.rawValue) x\($0.quantity) +\($0.eco) $\($0.cost)" }
@@ -564,8 +601,10 @@ func runReplay(_ dir: String) -> Never {
     eco            \(String(format: "%.1f", b.eco))  (+\(formatMoney(b.payoutPerTick)) per \(String(format: "%.1fs", b.tickPeriod)))
     sends detected \(b.sendsDetected) (\(b.lowConfidenceSends) low confidence)
     into sends     \(formatMoney(b.sendSpend))
-    into towers    \(formatMoney(b.towerSpend))  (\(b.buildCount) builds, \(b.clippedBuilds) clipped)
-    towers claimed \(formatMoney(b.towerSpendRaw))  (before the affordability bound)
+    into towers    \(formatMoney(b.towerSpend))  (\(b.buildCount) on board, \(b.towerSitesUnpriced) unpriced)
+    board valued   \(formatMoney(b.towerSpendRaw))  (before the affordability bound, \(b.towerClips) clips)
+    sprite library \(spriteLibrary.count) priced appearances
+    scene changes  \(towers.sceneChanges)
     generated      \(formatMoney(b.totalGenerated))
     cash           \(formatMoney(b.cash))
     cash ceiling   \(formatMoney(b.cashCeiling))

@@ -1,10 +1,10 @@
 // The round table: what each round sends at both players naturally, and when.
 //
 // Loaded from data/btd6_derived_rounds.json (BTD6 DefaultRoundSet round 2N).
-// BTDB2 alters some rounds, so every lookup is treated as a prior rather than
-// as truth — `observedUnexpected` records types that showed up but were not
-// scheduled, which is both the send signal AND the correction signal for the
-// table itself.
+// BTDB2 alters some rounds, so every lookup is treated as a prior rather than as
+// truth: a type on the track that this table does not schedule is read as an
+// opponent send (see SendDetector), which means a wrong row here shows up as a
+// phantom send rather than as a silent miss.
 
 import Foundation
 
@@ -61,10 +61,5 @@ final class RoundData {
         (rounds[round]?.groups ?? []).reduce(0) { sum, g in
             sum + (g.type.map { $0.popValue * g.count } ?? 0)
         }
-    }
-
-    /// Seconds from round start until the last natural bloon has spawned.
-    func spawnDuration(_ round: Int) -> Double {
-        (rounds[round]?.groups ?? []).map(\.end_s).max() ?? 0
     }
 }

@@ -2,31 +2,16 @@
 //
 // Membership comes from PlateCensus — occupancy against a plate of the empty
 // board, gated on stillness. This file owns everything ABOVE that: turning
-// blobs into tracked sites with stable identities, pricing them by descriptor,
-// and reporting what changed.
+// blobs into tracked sites with stable identities, describing them so they can
+// be priced, and reporting what changed.
 //
-// Two designs have been replaced here, both for measured reasons:
-//
-//   Event sums. Board value was once a running total of build EVENTS, so every
-//   false positive was permanent and drift was monotone — a logged match reached
-//   $12,461 against a $2,302 ceiling and never came back down. Value is now a
-//   pure function of the sites currently standing, so a bad reading costs a few
-//   seconds instead of the rest of the match, and a sell simply leaves the
-//   census rather than registering as another purchase.
-//
-//   Absorption detection. Sites were found by watching pixels settle, which
-//   could only ever see a tower ARRIVE. Anything standing before the tracker
-//   latched was invisible by design, and every scene change wiped the board. On
-//   a real logged match it found 0 of 13 opponent towers. PlateCensus asks what
-//   is standing there instead, and scores 10/13 and 9/11 held-out on two maps.
-//
-// What this file still decides, and why each is not free:
+// What it decides, and why each is not free:
 //
 //   is it the same   a blob near a known site is that site, so identity — and
 //                    therefore arrival time — survives a frame where the mask
 //                    breaks up
-//   is it new        confirmed only after several censuses agree, because a
-//                    bloon pack can hold still for one window
+//   is it new        confirmed only once a site has aged in, because a bloon
+//                    pack can hold still for one window
 //   is it different  descriptor distance, which is what separates an upgrade
 //                    from a passing bloon
 //
@@ -124,10 +109,6 @@ final class BoardWatcher {
         lastCensus = -Double.greatestFiniteMagnitude
     }
 
-    /// Nothing to scale any more — the plate detector works in its own grid and
-    /// its thresholds are absolute. Kept so callers need not change.
-    func calibrate(frameWidth: Int) {}
-
     var confirmedSites: [TowerSite] { sites.filter(\.isConfirmed) }
 
     /// Why the census produced what it did, for the frame just scanned. Without
@@ -150,10 +131,7 @@ final class BoardWatcher {
     static var cropSink: ((CGImage, String) -> Void)?
 
     /// Scan the board and reconcile it with the standing census.
-    ///
-    /// `allowed` is unused now that path learning is gone; it stays in the
-    /// signature so callers are untouched.
-    func update(_ frame: Frame, allowed: Set<BloonType>) -> [CensusChange] {
+    func update(_ frame: Frame) -> [CensusChange] {
         trace = Trace()
 
         // The plate has to come from a board with nothing on it. At match start
@@ -175,34 +153,26 @@ final class BoardWatcher {
         let now = frame.time
 
         // A banner, a panel, or the end-of-match overlay makes a large fraction
-        // of the board differ from the plate at once. SUSPEND while that lasts:
-        // skip the census so no site accrues a miss, and leave the plate alone.
+        // of the board differ from the plate at once. Two very different causes
+        // look identical in a single frame, and only DURATION separates them.
         //
-        // The obvious-looking alternative — reseed, the way the old absorption
-        // scanner did — is actively destructive here, and measurably so. On
-        // 20260816T124547 an overlay pushed occupancy to ~44% near t=326; a
-        // reseed there rebuilt the plate from a frame with eight towers
-        // standing on it, baking them into the background so they could never
-        // be seen again. The board read 7 towers at t=315 and 0 at t=330, and
-        // held-out recall fell from 76.9% to 30.8%. A plate is only ever valid
-        // if it was taken from an empty board, so the only safe reseed is at
-        // retarget, when a match is starting.
+        // Transient — a banner covers the board for a second or two and goes.
+        // The plate underneath is still good, so suspend: skip the census so no
+        // site accrues a miss, and leave the plate alone. Reseeding here is
+        // actively destructive. On 20260816T124547 an overlay pushed occupancy
+        // to ~44% near t=326, and a reseed rebuilt the plate from a frame with
+        // eight towers standing on it, baking them into the background for good:
+        // 7 towers at t=315, 0 at t=330, held-out recall 76.9% → 30.8%.
+        //
+        // Stale — a plate taken under the wrong lighting never recovers. On
+        // 20260816T152152 the side latched during the match-start countdown,
+        // which dims the whole screen, so the plate was geometrically perfect
+        // and photometrically useless. Every later frame differed from it
+        // everywhere, and suspending forever meant 0 of 11 towers. Sustained
+        // high occupancy is evidence about the PLATE, not the board, and the
+        // only repair is to take a new one.
         if plate.isSceneChange() {
             plate.noteSceneChange()
-            // Transient or stale? The two look identical in one frame and are
-            // told apart by how long they last.
-            //
-            // A banner or panel covers the board for a second or two and then
-            // goes; the plate underneath is still good, so suspending is right.
-            // But a plate taken from the WRONG LIGHTING never recovers — on
-            // 20260816T152152 the side latched during the match-start countdown,
-            // which dims the whole screen, so the plate was geometrically
-            // perfect and photometrically useless. Every later frame differed
-            // from it everywhere, occupancy pinned high, and suspend-forever
-            // meant the detector never ran at all: 0 of 11 towers.
-            //
-            // So sustained high occupancy is evidence about the PLATE, not the
-            // board, and the only repair is to take a new one.
             let since = sceneSince ?? now
             sceneSince = since
             if now - since >= staleplateSeconds {
@@ -227,11 +197,9 @@ final class BoardWatcher {
     }
 
     /// Fill the trace from the standing census on a frame that ran no census.
-    ///
-    /// Every early return above used to leave `trace.sites` at zero, so the
-    /// console showed an empty board on any frame that was skipped for rate or
-    /// suspended — which is exactly how the reseed bug above stayed hidden: the
-    /// frames where the damage happened printed nothing at all.
+    /// A frame skipped for rate or suspended for a scene change still has sites
+    /// standing, and reporting zero there would make it look like an empty board
+    /// on exactly the frames worth inspecting.
     private func reportStanding() {
         trace.sites = sites.count
         trace.confirmed = sites.filter(\.isConfirmed).count

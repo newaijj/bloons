@@ -1,16 +1,15 @@
 // Plate-based occupancy detection: where the towers on a board are, right now.
 //
-// This replaces absorption-event detection, which found nothing at all on real
-// match data — 0/13 opponent towers across a whole logged match. Measured
-// held-out on two matches with frozen parameters: 10/13 at 83.3% precision on
-// one map, 9/11 at 90.0% on a different map against a different opponent. See
-// eval/runs/ for the run records.
-//
 // The mechanism is a state query, not an event query, and that difference is the
-// point. Absorption could only ever see a tower ARRIVE, so anything standing
-// before the tracker latched was invisible forever and every scene change wiped
-// the board. Occupancy against a plate asks what is standing there, so a tower
-// is found whether or not its arrival was witnessed.
+// point. Watching pixels settle can only ever see a tower ARRIVE, so anything
+// standing before the tracker latched is invisible forever and every scene
+// change wipes the board — run that way, detection found 0 of 13 opponent
+// towers across a whole logged match. Occupancy against a plate asks what is
+// standing there, so a tower is found whether or not its arrival was witnessed.
+//
+// Measured held-out on two matches with frozen parameters: 10/13 at 83.3%
+// precision on one map, 9/11 at 90.0% on a different map against a different
+// opponent. See eval/runs/ for the run records.
 //
 //   plate      the board with nothing on it
 //   occupancy  fraction of a window in which a cell differs from the plate
@@ -132,7 +131,6 @@ final class PlateCensus {
         lastSample = -Double.greatestFiniteMagnitude
     }
 
-    var grid: (w: Int, h: Int) { (gw, gh) }
     var hasPlate: Bool { plateSeededAt != nil }
 
     /// Take this frame as the empty board.

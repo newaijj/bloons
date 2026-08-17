@@ -25,7 +25,6 @@ import Foundation
 final class SpriteHarvester {
     private let board: BoardWatcher
     private let library: SpriteLibrary
-    private let roundData: RoundData
 
     private var lastCash: Int?
     private var lastEco: Double?
@@ -48,11 +47,9 @@ final class SpriteHarvester {
     /// a frame in hand.
     private var now = 0.0
 
-    private(set) var learnedThisRun = 0
-    private(set) var refundSamples: [Double] = []
+    private var refundSamples: [Double] = []
 
-    init(roundData: RoundData, library: SpriteLibrary) {
-        self.roundData = roundData
+    init(library: SpriteLibrary) {
         self.library = library
         board = BoardWatcher(region: Regions.myTrack, name: "mine")
     }
@@ -64,10 +61,6 @@ final class SpriteHarvester {
         now = 0
     }
 
-    func calibrate(frameWidth: Int) { board.calibrate(frameWidth: frameWidth) }
-
-    var librarySize: Int { library.count }
-    var siteCount: Int { board.confirmedSites.count }
     var trace: BoardWatcher.Trace { board.trace }
     /// Your own census, for offline scoring. This is the side worth scoring
     /// against: a cash drop with flat eco dates and prices every purchase here
@@ -104,7 +97,7 @@ final class SpriteHarvester {
     @discardableResult
     func update(_ frame: Frame, round: Int) -> [String] {
         now = frame.time
-        let changes = board.update(frame, allowed: roundData.naturalTypes(round))
+        let changes = board.update(frame)
         var notes: [String] = []
 
         for c in changes {
@@ -114,7 +107,6 @@ final class SpriteHarvester {
                 switch library.learn(s.descriptor, cumulativeCost: price,
                                      note: "new tower, R\(round)") {
                 case .learned:
-                    learnedThisRun += 1
                     notes.append("learned: new tower = $\(price) (library \(library.count))")
                 case .rejected(let why):
                     // The pairing, not the price, is what went wrong: some cash
@@ -136,7 +128,6 @@ final class SpriteHarvester {
                 switch library.learn(s.descriptor, cumulativeCost: base + price,
                                      note: "upgrade from $\(base), R\(round)") {
                 case .learned:
-                    learnedThisRun += 1
                     notes.append("learned: upgrade = $\(base + price) cumulative (library \(library.count))")
                 case .rejected(let why):
                     notes.append("REJECTED upgrade: \(why) — cash/board pairing is wrong")

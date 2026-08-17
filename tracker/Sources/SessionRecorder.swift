@@ -29,11 +29,10 @@
 // The format is PNG, and that was measured rather than assumed. JPEG is ~5x
 // smaller at quality 60 and its effect on the descriptor looked harmless at
 // first glance — median distance 0.03 against a within-tower noise floor of
-// 0.224. But `looksLikeSprite` is a hard threshold on edgeDensity, which is a
-// 2px local gradient, and that is precisely what JPEG smooths: the gate flipped
-// on 9-19% of boxes across three frames, even at quality 80. Tuning thresholds
-// against a corpus that reads sprites differently from the live stream would
-// produce numbers that do not transfer.
+// 0.224. But `edgeDensity` is a 2px local gradient, which is precisely what
+// JPEG smooths, and a threshold on it flipped for 9-19% of boxes across three
+// frames even at quality 80. Tuning against a corpus that reads sprites
+// differently from the live stream produces numbers that do not transfer.
 
 import Foundation
 import CoreGraphics
@@ -137,9 +136,6 @@ final class SessionRecorder {
     private var nextQuietAt = 0.0
     private var lastTriggerSize = -1
     private var triggers = 0
-
-    var location: String { dir.path }
-    var count: Int { lock.lock(); defer { lock.unlock() }; return entries.count }
 
     init?(baseDir: URL, session: String, fps: Int, maxFrames: Int, policy: Policy) {
         self.dir = baseDir.appendingPathComponent(session, isDirectory: true)

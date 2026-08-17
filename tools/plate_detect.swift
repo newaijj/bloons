@@ -1,11 +1,18 @@
-// Offline plate + occupancy/flicker tower detector.
+// Offline plate + occupancy/flicker tower detector — the bench copy.
 //
-// Deliberately NOT wired into the live pipeline yet. Run as an experiment first:
-// it reads a recorded session and writes the same CensusRecord JSONL that
-// `--census-log` produces, so tools/score.py scores it against the frozen
-// baseline with no changes. Iterating on thresholds costs one pass over the
-// PNGs instead of a full replay, and nothing about the shipped detector moves
-// until a held-out number says it should.
+// The method here is what shipped: `tracker/Sources/PlateCensus.swift` is the
+// live implementation and the two share their frozen parameters. This one exists
+// to iterate cheaply. It reads a recorded session and writes the same
+// CensusRecord JSONL `--census-log` produces, so tools/score.py scores it with
+// no changes, and a threshold sweep costs one pass over the PNGs instead of a
+// full replay. Nothing moves in the live detector until a held-out number here
+// says it should.
+//
+// It is NOT a mirror of the shipped detector. `splitBlob` below is an
+// experiment arm that was measured and REJECTED (see the note on it, and
+// eval/runs/2026-08-16-peak-split.md); it is still applied here so the ablation
+// stays reproducible. Raise `--split-min-cells` above any real blob to switch it
+// off and get output comparable to a live replay.
 //
 // The method, and why each part is there:
 //

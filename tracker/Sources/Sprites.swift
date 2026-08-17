@@ -68,13 +68,6 @@ struct SpriteDescriptor: Codable {
 
         return 0.42 * hueD + 0.28 * ringD + 0.12 * darkD + 0.10 * edgeD + 0.08 * areaD
     }
-
-    /// Whether this looks like a tower sprite at all, as opposed to flat map,
-    /// the match-start curtain, or a banner. Thresholds are from labelled
-    /// regions of a real capture; see the table in the README.
-    var looksLikeSprite: Bool {
-        edgeDensity >= 0.10 && darkFrac >= 0.12
-    }
 }
 
 /// One priced appearance. `cumulativeCost` is TOTAL money sunk into a tower that

@@ -67,7 +67,6 @@ enum Regions {
         static let round    = HUDRegion(name: "round",     rect: CGRect(x: 0.5332, y: 0.0705, width: 0.0879, height: 0.0365))
         static let myLives  = HUDRegion(name: "my_lives",  rect: CGRect(x: 0.6328, y: 0.0705, width: 0.0547, height: 0.0365))
         static let myName   = HUDRegion(name: "my_name",   rect: CGRect(x: 0.8594, y: 0.0705, width: 0.1289, height: 0.0365))
-        static let myQueue  = HUDRegion(name: "my_queue",  rect: CGRect(x: 0.4785, y: 0.1795, width: 0.0449, height: 0.3715))
         static let sendMenu = HUDRegion(name: "send_menu", rect: CGRect(x: 0.9277, y: 0.5038, width: 0.0742, height: 0.1826))
         /// The LEFT board, measured. The right board is its exact reflection and
         /// is derived rather than measured a second time — see the header.
@@ -143,10 +142,6 @@ enum Regions {
     /// flipped arithmetically to the opposite edge.
     static var sendMenu: HUDRegion { mirrored ? flipX(M.sendMenu, "send_menu") : M.sendMenu }
 
-    /// Your outgoing queue sits centred ON the divider — its own mirror image.
-    /// It does not move with the side.
-    static var myQueue: HUDRegion { M.myQueue }
-
     /// Centre chrome that overhangs both play bands, to be excluded from any
     /// scan of either board. Not a play region: it is the strip to THROW AWAY.
     ///
@@ -162,8 +157,8 @@ enum Regions {
     /// Against boards at 190-1240 and 1319-2369, that is a 6px overhang onto the
     /// right board and 6px onto the left. Note it is the BUTTONS that reach the
     /// right board — the queue stops at 1318, one pixel short of it — so masking
-    /// `myQueue` would have missed the overhang entirely while discarding 22px of
-    /// real board that has no chrome on it.
+    /// the queue column alone would miss the overhang entirely while discarding
+    /// 22px of real board that has no chrome on it.
     ///
     /// One column covers both, full play height, since they share their columns
     /// and nothing else is ever drawn there. 1232-1328 gives ~3px of margin.
@@ -205,7 +200,4 @@ enum Regions {
     /// has to happen without knowing the side, or it is circular.
     static var leftLives: HUDRegion { renamed(M.oppLives, "left_lives") }
     static var rightLives: HUDRegion { renamed(M.myLives, "right_lives") }
-
-    static var hudText: [HUDRegion] { [oppName, oppLives, myCash, myEco, round, myLives, myName] }
-    static var all: [HUDRegion] { hudText + [myQueue, sendMenu, myTrack, oppTrack] }
 }

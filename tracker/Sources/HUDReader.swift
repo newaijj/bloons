@@ -52,18 +52,6 @@ final class HUDReader {
         }
     }
 
-    /// Just your cash, for pinning a labelled placement to an exact frame.
-    ///
-    /// A driver's label brackets a click by tens of seconds, because it cannot
-    /// be written until the click has already gone through. But a tower costs a
-    /// known amount and the money leaves your pocket the instant it lands, so
-    /// the cash readout dates the placement far more precisely than the label
-    /// that describes it. Kept separate from `read` so scanning a whole session
-    /// for drops does not pay for OCR of names, lives, and send cards.
-    func cashOnly(_ image: CGImage) -> Int? {
-        parseInt(text(image, Regions.myCash))
-    }
-
     private func text(_ image: CGImage, _ region: HUDRegion) -> String {
         recognize(image, region.pixels(image.width, image.height), accurate: true)
             .map(\.0).joined(separator: " ")
@@ -119,6 +107,19 @@ final class HUDReader {
         return n
     }
 
+    /// Relax the two-lives requirement to one, for opponents whose lives are not
+    /// a number.
+    ///
+    /// Solo modes put an infinity glyph where a lives count goes — T.D. in Hero
+    /// Challenge renders `∞`, and the region OCRs as empty — so the two-lives
+    /// test can never pass and the tracker stays dark for the whole match, live
+    /// or replaying a corpus recorded in it.
+    ///
+    /// Opt-in rather than the default, because the strict test is what keeps a
+    /// menu from deciding the side (see `matchProbe`). Solo runs force the side
+    /// anyway, so the failure it guards against is not reachable there.
+    static var soloMode = false
+
     /// Whether a match is actually on screen, and where the top bar sits.
     ///
     /// Deliberately side-independent — deciding the side requires knowing a
@@ -128,24 +129,8 @@ final class HUDReader {
     /// are mirror images of each other, so testing both positions covers either
     /// orientation.
     ///
-    /// This exists because a run latched the side off menu chrome 43 seconds
-    /// before the board came up, and got it backwards.
-    /// Relax the two-lives requirement to one, for opponents whose lives are not
-    /// a number.
-    ///
-    /// Solo modes put an infinity glyph where a lives count goes — T.D. in Hero
-    /// Challenge renders `∞`, and the region OCRs as empty — so the two-lives
-    /// test can never pass and the tracker stays dark for the whole match. That
-    /// blocked not just live solo play but reading back any corpus recorded in
-    /// it: 754 recorded frames, every one rejected here.
-    ///
-    /// This is opt-in rather than the default because the strict test is load
-    /// bearing in two-player: requiring both lives is what kept a MENU from
-    /// latching a side 43 seconds before the board came up, and got it backwards
-    /// when it did. Solo runs force the side anyway, so the failure this guards
-    /// against is not reachable there.
-    static var soloMode = false
-
+    /// This gate exists because a run once latched the side off menu chrome 43
+    /// seconds before the board came up, and got it backwards.
     func matchProbe(_ image: CGImage) -> (round: Int, topBarMirrors: Bool)? {
         for cand in Regions.roundCandidates {
             guard let r = probeRound(image, cand.region) else { continue }
@@ -245,7 +230,7 @@ final class HUDReader {
         }
 
         // Parse each card's numbers, keeping its grid position.
-        struct Parsed { let row: CGFloat; let column: Int; let qty: Int; let eco: Double; let cost: Int; let iconY: CGFloat }
+        struct Parsed { let row: CGFloat; let column: Int; let qty: Int; let eco: Double; let cost: Int }
         var parsed: [Parsed] = []
         for card in cards where card.hits.count >= 3 {
             let sorted = card.hits.sorted { $0.1.minY < $1.1.minY }
@@ -261,8 +246,7 @@ final class HUDReader {
             guard eco < 5 else { continue }
 
             parsed.append(Parsed(row: sorted[0].1.minY, column: card.column,
-                                 qty: qty, eco: eco, cost: cost,
-                                 iconY: sorted[0].1.minY - 0.10))
+                                 qty: qty, eco: eco, cost: cost))
         }
 
         // Type comes from position, not colour. The menu lays sends out in a
@@ -270,8 +254,6 @@ final class HUDReader {
         // and that ordering survives lighting, gloss, and the muted olive green
         // that hue voting kept losing to the card's blue background.
         //
-        // Colour is kept as a cross-check: a confident disagreement wins, which
-        // is what rescues the mapping when the menu has been scrolled.
         // Index from ABSOLUTE grid geometry, not from position among the cards
         // that happened to parse — one failed OCR would otherwise shift every
         // card after it onto the wrong bloon.
@@ -299,36 +281,4 @@ final class HUDReader {
     static let sendOrder: [BloonType] = [.red, .blue, .green, .yellow, .pink,
                                          .black, .white, .purple, .lead, .zebra,
                                          .rainbow, .ceramic]
-
-    /// Vote over a small patch — a single pixel lands on a specular highlight
-    /// too often to be trusted.
-    ///
-    /// The patch is redrawn into a fresh RGBA context rather than read straight
-    /// off `cropping(to:)`. A cropped CGImage shares its parent's data provider,
-    /// so indexing its bytes directly reads from the top-left of the WHOLE frame
-    /// — which silently classified every send icon as the same colour.
-    private func classifyIcon(_ image: CGImage, x: Int, y: Int) -> BloonType? {
-        let size = 40
-        let box = CGRect(x: x - size / 2, y: y - size / 2, width: size, height: size)
-        guard box.minX >= 0, box.minY >= 0,
-              Int(box.maxX) < image.width, Int(box.maxY) < image.height,
-              let crop = image.cropping(to: box) else { return nil }
-
-        var buf = [UInt8](repeating: 0, count: size * size * 4)
-        guard let ctx = buf.withUnsafeMutableBytes({ raw in
-            CGContext(data: raw.baseAddress, width: size, height: size,
-                      bitsPerComponent: 8, bytesPerRow: size * 4,
-                      space: CGColorSpaceCreateDeviceRGB(),
-                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-        }) else { return nil }
-        ctx.draw(crop, in: CGRect(x: 0, y: 0, width: size, height: size))
-
-        var votes: [BloonType: Int] = [:]
-        for i in stride(from: 0, to: buf.count, by: 4) {
-            let hsb = HSB(r: Double(buf[i]) / 255, g: Double(buf[i + 1]) / 255, b: Double(buf[i + 2]) / 255)
-            for t in BloonType.allCases where hsb.matches(t) { votes[t, default: 0] += 1 }
-        }
-        guard let best = votes.max(by: { $0.value < $1.value }), best.value > 40 else { return nil }
-        return best.key
-    }
 }

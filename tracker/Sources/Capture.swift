@@ -95,16 +95,12 @@ final class WindowCapture: NSObject, SCStreamOutput, SCStreamDelegate {
     private var stream: SCStream?
     private let queue = DispatchQueue(label: "btdb2.capture", qos: .userInitiated)
     private var onFrame: ((Frame) -> Void)?
-    private(set) var frameSize = CGSize.zero
 
     /// Presentation timestamp of the first frame, so `Frame.time` counts from
     /// zero at the start of the session. Taken from the sample buffer rather
     /// than the wall clock because that is the clock the capture is actually
     /// paced on — a frame delayed in the queue still reports when it was taken.
     private var firstPTS: Double?
-
-    /// Set when the stream drops — main loop watches this to re-attach.
-    private(set) var stopped = false
 
     static func findWindow() async -> SCWindow? {
         guard let content = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
@@ -116,7 +112,6 @@ final class WindowCapture: NSObject, SCStreamOutput, SCStreamDelegate {
 
     func start(window: SCWindow, fps: Int, scale: CGFloat, onFrame: @escaping (Frame) -> Void) async throws {
         self.onFrame = onFrame
-        self.stopped = false
         self.firstPTS = nil
 
         let config = SCStreamConfiguration()
@@ -126,19 +121,12 @@ final class WindowCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         config.pixelFormat = kCVPixelFormatType_32BGRA
         config.showsCursor = false
         config.queueDepth = 3
-        frameSize = CGSize(width: config.width, height: config.height)
 
         let filter = SCContentFilter(desktopIndependentWindow: window)
         let s = SCStream(filter: filter, configuration: config, delegate: self)
         try s.addStreamOutput(self, type: .screen, sampleHandlerQueue: queue)
         try await s.startCapture()
         self.stream = s
-    }
-
-    func stop() async {
-        try? await stream?.stopCapture()
-        stream = nil
-        stopped = true
     }
 
     func stream(_ stream: SCStream, didOutputSampleBuffer sb: CMSampleBuffer, of type: SCStreamOutputType) {
@@ -158,6 +146,5 @@ final class WindowCapture: NSObject, SCStreamOutput, SCStreamDelegate {
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         FileHandle.standardError.write("capture stopped: \(error)\n".data(using: .utf8)!)
-        stopped = true
     }
 }

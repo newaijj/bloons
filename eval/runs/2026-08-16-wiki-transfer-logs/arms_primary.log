@@ -1,0 +1,73 @@
+################ PRIMARY (arms A/B/I/C) ################
+seed=20260816  torch=2.13.0  backbone=resnet18/IMAGENET1K_V1
+
+--- arm A_wiki (PRIMARY)
+  OK dart_114514   true=dart_monkey       pred=dart_monkey       (88% of frames agree)
+     boom_m1a      true=boomerang_monkey  pred=dart_monkey       (62% of frames agree)
+  OK boom_m1b      true=boomerang_monkey  pred=boomerang_monkey  (100% of frames agree)
+  OK boom_m2       true=boomerang_monkey  pred=boomerang_monkey  (88% of frames agree)
+  OK tack_koru     true=tack_shooter      pred=tack_shooter      (100% of frames agree)
+  OK bomb_koru     true=bomb_shooter      pred=bomb_shooter      (75% of frames agree)
+  balanced_accuracy=0.9167  plain_accuracy=0.8333  classes_with_a_hit=4/4  exact_p=0.00244
+  prediction histogram: {'dart_monkey': 2, 'boomerang_monkey': 2, 'tack_shooter': 1, 'bomb_shooter': 1}
+--- arm B_shop_icons (control)
+  OK dart_114514   true=dart_monkey       pred=dart_monkey       (100% of frames agree)
+     boom_m1a      true=boomerang_monkey  pred=dart_monkey       (88% of frames agree)
+     boom_m1b      true=boomerang_monkey  pred=dart_monkey       (100% of frames agree)
+     boom_m2       true=boomerang_monkey  pred=tack_shooter      (50% of frames agree)
+  OK tack_koru     true=tack_shooter      pred=tack_shooter      (100% of frames agree)
+  OK bomb_koru     true=bomb_shooter      pred=bomb_shooter      (100% of frames agree)
+  balanced_accuracy=0.7500  plain_accuracy=0.5000  classes_with_a_hit=3/4  exact_p=0.01782
+  prediction histogram: {'dart_monkey': 3, 'tack_shooter': 2, 'bomb_shooter': 1}
+--- arm I_instrument (no training; can the features group same-class in-match crops at all?)
+        dart_1145   boom_m1a   boom_m1b    boom_m2  tack_koru  bomb_koru
+  dart_1145       1.000      0.852      0.838      0.805      0.716      0.766
+   boom_m1a       0.852      1.000      0.961      0.830      0.694      0.706
+   boom_m1b       0.838      0.961      1.000      0.863      0.706      0.708
+    boom_m2       0.805      0.830      0.863      1.000      0.749      0.741
+  tack_koru       0.716      0.694      0.706      0.749      1.000      0.753
+  bomb_koru       0.766      0.706      0.708      0.741      0.753      1.000
+  nearest-other of boom_m1a: boom_m1b (same class: True)
+  nearest-other of boom_m1b: boom_m1a (same class: True)
+  nearest-other of boom_m2: boom_m1b (same class: True)
+  boomerang nearest-neighbour-same-class: 3/3
+
+--- arm C_null (secondary: all 4! permutations of wiki image -> class name)
+  identity mapping balanced_acc=0.9167
+  permutation scores: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.083, 0.083, 0.083, 0.167, 0.167, 0.25, 0.25, 0.25, 0.25, 0.333, 0.333, 0.417, 0.417, 0.417, 0.5, 0.5, 0.583, 0.917]
+  rank of identity: 1/24  -> permutation p=0.0417
+
+=== READ RULE (eval/prereg_wiki_transfer.md) ===
+  PASS needs balanced_acc>=0.75 AND exact_p<0.05 AND classes_with_a_hit>=3
+  arm A: balanced_acc=0.9167 exact_p=0.00244 hits=4/4 -> PASS
+  arm B (control): balanced_acc=0.7500 exact_p=0.01782
+
+################ DUMB COLOUR BASELINE ################
+  OK dart_114514   true=dart_monkey       pred=dart_monkey
+  OK boom_m1a      true=boomerang_monkey  pred=boomerang_monkey
+  OK boom_m1b      true=boomerang_monkey  pred=boomerang_monkey
+  OK boom_m2       true=boomerang_monkey  pred=boomerang_monkey
+  OK tack_koru     true=tack_shooter      pred=tack_shooter
+  OK bomb_koru     true=bomb_shooter      pred=bomb_shooter
+
+  colour-histogram balanced_accuracy=1.0000 exact_p=0.00024
+
+################ UPGRADED TIER ################
+  candidate set: 4 towers
+  OK boom_m1a_up   true=boomerang_monkey  pred=boomerang_monkey  frame votes=[('boomerang_monkey', 8)]
+  OK boom_m1b_up   true=boomerang_monkey  pred=boomerang_monkey  frame votes=[('boomerang_monkey', 8)]
+
+  upgraded-tier instances correct: 2/2 (chance 1/4 each; descriptive only, too few for a significance claim)
+
+################ 22-CLASS EXPANSION ################
+candidate set: 22 towers
+  OK dart_114514   true=dart_monkey       pred=dart_monkey        frame votes=[('dart_monkey', 5), ('EngineerMonkey', 3)]
+     boom_m1a      true=boomerang_monkey  pred=dart_monkey        frame votes=[('dart_monkey', 5), ('boomerang_monkey', 3)]
+  OK boom_m1b      true=boomerang_monkey  pred=boomerang_monkey   frame votes=[('boomerang_monkey', 8)]
+     boom_m2       true=boomerang_monkey  pred=SpikeFactory       frame votes=[('SpikeFactory', 4), ('NinjaMonkey', 3), ('EngineerMonkey', 1)]
+  OK tack_koru     true=tack_shooter      pred=tack_shooter       frame votes=[('tack_shooter', 8)]
+     bomb_koru     true=bomb_shooter      pred=tack_shooter       frame votes=[('tack_shooter', 3), ('SpikeFactory', 3), ('bomb_shooter', 2)]
+
+  balanced_accuracy=0.5833  plain_accuracy=0.5000
+  null (uniform over 22 candidates, 200k draws): mean=0.0453 p95=0.2500
+  p=0.00088

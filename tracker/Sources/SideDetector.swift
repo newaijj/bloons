@@ -89,11 +89,10 @@ final class SideDetector {
 
     /// Keep watching after the latch.
     ///
-    /// A latch was permanent and unexamined until a run proved why that is not
-    /// good enough: it decided from menu chrome before the board existed, got
-    /// the side backwards, and produced confident inverted books for the whole
-    /// match with nothing on screen or on disk to say so. Gating detection on a
-    /// live match fixes that specific cause; this catches the general case.
+    /// A wrong latch produces confident inverted books for a whole match with
+    /// nothing to say so, so the call is treated as a hypothesis rather than a
+    /// fact. Holding the decision until a match is up (HUDReader.matchProbe)
+    /// removes the one known cause; this catches the general case.
     ///
     /// Returns the corrected side on the sample that overturns the call.
     func verify(left: Int, right: Int) -> PlayerSide? {

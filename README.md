@@ -185,9 +185,10 @@ round 2N. Verified at the edges: BTDB2 r1 = 35×Red matches capture, and r3's
 green/red/blue composition is what exposed the opponent's grouped yellows as a
 send.
 
-BTDB2 alters some rounds, so treat it as a prior. The tracker logs observed
-types against expected ones, which is both the send signal and the correction
-signal for the table.
+BTDB2 alters some rounds, so treat it as a prior. A type on your track that the
+table does not schedule is read as an opponent send, so a wrong row shows up as a
+phantom send rather than as a silent miss — the send signal doubles as the
+correction signal for the table.
 
 ## Eco mechanics, measured
 
@@ -373,8 +374,9 @@ Treat the numbers as provisional: one map, one dump, and the largest
 within-distance may itself be a real upgrade rather than noise, which would mean
 the gap is wider than it looks.
 
-Texture is what separates a sprite from a transition, and it needs no library at
-all. Labelled regions of a real frame:
+Edge density is one component of the descriptor, weighted 0.10. It is **not** a
+test of whether something is a tower, and was tried as one. Labelled regions of a
+real frame:
 
 | region | edge density |
 |---|---|
@@ -383,11 +385,12 @@ all. Labelled regions of a real frame:
 | tower sprites | **0.131 – 0.334** |
 | dense bloon stream | 0.366 |
 
-The curtain is rejected by two orders of magnitude, which is the entire $11,820
-burst gone on one test. Bloons are **not** separable this way — a dense stream has
-a hard edge at every boundary and scores highest of anything measured. They are
-excluded by the path mask, by moving between censuses, and by failing descriptor
-verification, not by texture.
+The curtain separates by two orders of magnitude, but bloons do not separate at
+all — a dense stream has a hard edge at every boundary and scores highest of
+anything measured. A texture gate therefore buys one case and loses the one that
+matters, and the companion `darkFrac` term measured *anti*-correlated with being
+a tower. Existence is decided by occupancy against a known plate instead, which
+is a far stronger test; bloons are excluded by moving between censuses.
 
 Known limits:
 
@@ -417,10 +420,9 @@ Known limits:
 - Card position→type assumes an unscrolled send menu, which holds while fewer
   than five sends are unlocked.
 - Selecting one of your towers opens a panel that covers the opponent's track.
-- `--replay` validates parsing, not dynamics: frames captured seconds apart
-  cannot exercise a 6s tick or the 2.5s settle window. The census reports zero
-  sites under replay for the same reason — a site needs a 3s settle window and
-  two confirmations 2s apart — and that zero is correct rather than broken.
+- Replays of the same corpus are not bit-reproducible; see the open note in
+  `eval/README.md` before reading a one- or two-unit gap between two arms as a
+  result.
 
 ## The published price table, and what it is not for
 

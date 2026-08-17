@@ -69,7 +69,7 @@ final class SendDetector {
     /// from round 1.
     private var allowedTypes: Set<BloonType> = [.red, .blue, .green, .yellow]
 
-    init(roundData: RoundData, fps: Int = 10) {
+    init(roundData: RoundData) {
         self.roundData = roundData
         self.scanner = TrackScanner(region: Regions.myTrack, sampleStep: 4,
                                     absorbAfterSeconds: 2.5)
@@ -124,7 +124,7 @@ final class SendDetector {
 
     /// Scan your track for bloons the round did not put there.
     func scan(_ frame: Frame) -> [BloonType: Int] {
-        let counts = scanner.scan(frame, allowed: allowedTypes).counts
+        let counts = scanner.scan(frame, allowed: allowedTypes)
         lastCounts = counts
         return counts
     }

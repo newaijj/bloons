@@ -44,13 +44,27 @@ def load(d):
 
 
 def cash_series(path):
-    out = []
+    """Frame time and cash for each row of a `--scan-cash` dump.
+
+    Located by the header, not by column position: the tracker prints startup
+    lines before the CSV begins, and the dump carries eco and round beside cash.
+    A positional parser silently matched nothing once the eco column landed, and
+    a run with no cash series is not an error — every placement just keeps its
+    whole untrimmed bracket.
+    """
+    out, cols = [], None
     for line in open(path):
-        parts = line.strip().split(",")
-        if len(parts) != 3 or parts[0] == "file" or not parts[2]:
+        parts = [p.strip() for p in line.strip().split(",")]
+        if parts[0] == "file":
+            cols = parts
+            continue
+        if cols is None or len(parts) != len(cols):
+            continue
+        row = dict(zip(cols, parts))
+        if not row.get("cash"):
             continue
         try:
-            out.append((float(parts[1]), int(parts[2])))
+            out.append((float(row["t"]), int(row["cash"])))
         except ValueError:
             pass
     return out

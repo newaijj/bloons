@@ -186,7 +186,7 @@ if let cd = opts.cropDir {
 
 HUDReader.soloMode = opts.solo
 let hud = HUDReader()
-let detector = SendDetector(roundData: roundData, fps: opts.fps)
+let detector = SendDetector(roundData: roundData)
 /// Tower prices, learned on your own board and kept across matches — a library
 /// that reset each launch would never get past whatever you built in the first
 /// two minutes.
@@ -197,8 +197,8 @@ let spriteLibrary = SpriteLibrary(path: resolveLibraryPath(opts.libraryPath))
 for p in spriteLibrary.purgedAtLoad {
     print("sprite library: dropped impossible entry \(p)")
 }
-let towers = TowerWatcher(roundData: roundData, library: spriteLibrary)
-let harvester = SpriteHarvester(roundData: roundData, library: spriteLibrary)
+let towers = TowerWatcher(library: spriteLibrary)
+let harvester = SpriteHarvester(library: spriteLibrary)
 let model = IncomeModel(roundData: roundData)
 let capture = WindowCapture()
 let sideDetector = SideDetector()
@@ -294,7 +294,6 @@ final class State: @unchecked Sendable {
     var latest: HUDSnapshot = HUDSnapshot()
     var frameCount = 0
     var gameFrame: CGRect = .zero
-    var lastEventText: [String] = []
     var started = Date()
     let lock = NSLock()
 
@@ -389,7 +388,6 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 }
 
 /// Commit to a side and re-point everything that reads a half of the screen.
-/// Commit to a side and re-point everything that reads a half of the screen.
 ///
 /// `topBarMirrors` arrives from the match probe rather than being worked out
 /// here: establishing that a match is up already requires finding the round
@@ -421,11 +419,10 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
       top bar      \(topBarMirrors ? "mirrored with the play area" : "unchanged")
     """)
 
-    // EVERY latch leaves pixels behind now, right-side included. The last wrong
-    // call produced a whole match of confident inverted output and not one frame
-    // to diagnose it with, because the dump only armed on outcomes already
-    // suspected of being wrong — which is precisely the set a false negative is
-    // not in. A short burst per match is cheap; losing the evidence is not.
+    // EVERY latch leaves pixels behind, right-side included. Arming only on
+    // outcomes already suspected of being wrong is precisely the rule that
+    // catches no false negatives, and a wrong latch with no frames behind it
+    // cannot be diagnosed at all. A short burst per match is cheap.
     if relatch {
         frameDump.arm(reason: "side overturned after latch: now \(side.rawValue)", note: layoutNote())
     } else if side == .left {
@@ -446,8 +443,6 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 
     if n == 1 {
         detector.calibrate(frameWidth: frame.width)
-        towers.calibrate(frameWidth: frame.width)
-        harvester.calibrate(frameWidth: frame.width)
         if frameDump.armsImmediately {
             frameDump.arm(reason: "--dump always", note: layoutNote())
         }
@@ -467,11 +462,10 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
     if !Regions.latched {
         guard n % ocrEveryNFrames == 0, let cg = frame.makeCGImage() else { return }
 
-        // The side CANNOT be decided outside a match. A menu has its own chrome
-        // in the outer columns, and a run latched off it 43 seconds before the
-        // board came up — and got the side backwards. Menu evidence is not
-        // merely ignored, it is discarded, so none of it can survive into the
-        // window where the decision is actually made.
+        // The side CANNOT be decided outside a match — a menu has its own chrome
+        // in the outer columns, which reads as the panel signal. Menu evidence is
+        // not merely ignored, it is DISCARDED, so none of it can survive into the
+        // window where the decision is actually made. See HUDReader.matchProbe.
         guard let m = hud.matchProbe(cg) else {
             if sideDetector.frames > 0 { sideDetector.discardEvidence() }
             if !sideWarned {
@@ -640,15 +634,10 @@ let ocrEveryNFrames = max(1, opts.fps / 3)   // HUD numbers need ~3Hz, not 10
 // MARK: - replay
 //
 // Push recorded PNGs through the live pipeline. Validates HUD parsing, send-card
-// reading, the track scan, and — since frames carry their own capture time — the
-// census dynamics too.
-//
-// Builds used to report zero here by construction, because a build must survive
-// a 3s settle window and a 2s census period, and frames captured seconds apart
-// were being replayed in milliseconds against a wall clock. Frames now carry
-// `time` from the recording, so those windows measure recorded seconds and a
-// replay reproduces what the live run did. That is what makes tuning detection
-// an offline exercise rather than one live match per experiment.
+// reading, the track scan, and — because frames carry their own capture time
+// (see `Frame.time`) rather than being clocked by how fast PNGs decode — the
+// census dynamics too. That is what makes tuning detection an offline exercise
+// rather than one live match per experiment.
 //
 // A directory without a manifest is still replayable — the two historic dumps
 // have none — but its frames get synthesised timestamps, which is a guess at
@@ -714,11 +703,7 @@ func runReplay(_ dir: String) -> Never {
               let pb = makePixelBuffer(from: cg), let frame = Frame(pb, time: entry.t)
         else { print("\(f): could not decode"); continue }
 
-        if i == 0 {
-            detector.calibrate(frameWidth: frame.width)
-            towers.calibrate(frameWidth: frame.width)
-            harvester.calibrate(frameWidth: frame.width)
-        }
+        if i == 0 { detector.calibrate(frameWidth: frame.width) }
 
         // Same rule as live: nothing is attributed to anybody until the side is
         // known. A short frame set may never accumulate enough panel text, in

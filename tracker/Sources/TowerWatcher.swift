@@ -3,9 +3,9 @@
 // Board value is recomputed from the current census every cycle, never
 // accumulated. That is the property that matters: a site which was never a
 // tower stops being counted the moment it fails verification, so a bad reading
-// costs a few seconds of error instead of permanently inflating the books. The
-// previous event-sum design had no way back down — a logged match reached
-// $12,461 against a $2,302 ceiling and stayed there.
+// costs a few seconds of error instead of permanently inflating the books.
+// Summing build EVENTS instead has no way back down — a logged match run that
+// way reached $12,461 against a $2,302 ceiling and stayed there.
 //
 // Pricing comes from the sprite library, which is learned on YOUR board where
 // your own cash gives the exact figure (see Sprites.swift). A tower whose
@@ -21,7 +21,8 @@ struct BoardValuation {
     /// part of what went in, and the rest stays spent.
     var sunkFromSells = 0
     var sites = 0
-    var pricedSites = 0
+    /// Sites counted at the fallback estimate rather than a learned price — how
+    /// much of the figure is still guesswork.
     var unpricedSites = 0
 
     var total: Int { boardValue + sunkFromSells }
@@ -29,25 +30,22 @@ struct BoardValuation {
 
 final class TowerWatcher {
     private let board: BoardWatcher
-    private let roundData: RoundData
     private let library: SpriteLibrary
 
     /// Fraction of a tower's cost returned when it is sold. BTD-family games
-    /// refund most but not all of it. Measurable on your own board from a cash
-    /// rise that is neither an eco tick nor pops; until that is wired up this
-    /// stays a stated assumption rather than a measured one.
+    /// refund most but not all of it. This is only the starting assumption:
+    /// SpriteHarvester overwrites it with a running mean as soon as a sell on
+    /// your own board pairs a vanished site with a plausible cash rise.
     static var sellRefundRatio = 0.75
 
     /// Cost assumed for a tower whose appearance is not in the library yet: the
     /// median base cost of the 22 towers that exist (PriceTable), flat.
     ///
-    /// It used to be $400 scaled 0.6x–3.0x by blob area, spanning $240–$1200 on
-    /// a relationship nothing had established. Tested against the learned
-    /// library on 2026-08-16: area vs cumulative cost came out at **r = −0.219,
-    /// n = 6** — the wrong sign, and far too few points to read as a real
-    /// negative. So the multiplier was carrying no information and the spread it
-    /// produced was noise dressed as detail. A flat published median is a worse
-    /// estimate of any individual tower and a more honest one of all of them.
+    /// Flat, deliberately: scaling it by blob area is the obvious-looking move
+    /// and does not work. Tested against the learned library on 2026-08-16, area
+    /// vs cumulative cost came out at **r = −0.219, n = 6** — the wrong sign, on
+    /// far too few points to read as a real negative. A multiplier fitted to that
+    /// carries no information and turns noise into apparent detail.
     ///
     /// n = 6 is not enough to have settled this. The upgrade path is to take the
     /// prior from the distribution of learned cumulative costs once the library
@@ -56,11 +54,9 @@ final class TowerWatcher {
     static var fallbackCost = PriceTable.medianTowerCost
 
     private(set) var valuation = BoardValuation()
-    private(set) var sunkFromSells = 0
-    private(set) var recentChanges: [String] = []
+    private var sunkFromSells = 0
 
-    init(roundData: RoundData, library: SpriteLibrary) {
-        self.roundData = roundData
+    init(library: SpriteLibrary) {
         self.library = library
         board = BoardWatcher(region: Regions.oppTrack, name: "opponent")
     }
@@ -69,27 +65,19 @@ final class TowerWatcher {
         board.retarget(Regions.oppTrack)
         sunkFromSells = 0
         valuation = BoardValuation()
-        recentChanges.removeAll()
     }
-
-    func calibrate(frameWidth: Int) { board.calibrate(frameWidth: frameWidth) }
 
     var sceneChanges: Int { board.sceneChanges }
     var trace: BoardWatcher.Trace { board.trace }
-    var siteCount: Int { board.confirmedSites.count }
     /// The census itself, for offline scoring. A site count alone cannot be
     /// scored against ground truth — you need to know WHERE the detector
     /// thought the towers were to say whether it was right.
     var sites: [TowerSite] { board.confirmedSites }
 
     /// Scan their board and revalue it. Returns human-readable change notes.
-    ///
-    /// The round's natural bloon types go through so the scanner can learn where
-    /// the path runs — towers cannot be built there, and that is one of the
-    /// filters keeping a bloon stream out of the census.
     @discardableResult
     func update(_ frame: Frame, round: Int) -> [String] {
-        let changes = board.update(frame, allowed: roundData.naturalTypes(round))
+        let changes = board.update(frame)
         var notes: [String] = []
 
         for c in changes {
@@ -107,8 +95,6 @@ final class TowerWatcher {
         }
 
         revalue()
-        recentChanges.append(contentsOf: notes)
-        if recentChanges.count > 40 { recentChanges.removeFirst(recentChanges.count - 40) }
         return notes
     }
 
@@ -118,7 +104,7 @@ final class TowerWatcher {
         v.sunkFromSells = sunkFromSells
         for s in board.confirmedSites {
             v.sites += 1
-            if library.match(s.descriptor) != nil { v.pricedSites += 1 } else { v.unpricedSites += 1 }
+            if library.match(s.descriptor) == nil { v.unpricedSites += 1 }
             v.boardValue += cost(of: s)
         }
         valuation = v

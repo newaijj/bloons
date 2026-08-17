@@ -17,23 +17,19 @@
 // Tower spend is bounded by the same accounting. They cannot spend money they
 // never had, and both terms of what they had — eco income and send costs — are
 // recovered rather than estimated. So `cashCeiling` is a hard bound on
-// cumulative tower spend, applied per build at the moment of the build rather
-// than once at the end. Clipping is COUNTED, not hidden: `cash` used to be
-// `max(0, …)` around an unbounded estimate, which quietly absorbed a tower
-// total 5x larger than the opponent's entire possible income. A rising
-// `clippedBuilds` now says the detector is over-firing, in the output, where it
-// can be seen.
+// cumulative tower spend. Clipping against it is COUNTED rather than silently
+// absorbed, because sustained clipping is a statement about the census: it means
+// the detector is asserting a board they could not have paid for.
 //
 // Every interval in here — the tick period fitted from your cash jumps, the
 // window that merges one tick seen twice, the elapsed time the payouts are
 // charged against — is measured in RECORDED SECONDS off `Frame.time`, the same
 // discipline `TrackScanner` documents for absorption. This model is almost
 // entirely made of durations, so reading them from the wall clock meant a
-// replay was pricing the opponent's eco off how fast the machine could decode
-// PNGs: the same binary over the same corpus produced a 4.8s tick on one run
-// and 5.0s on the next, and $19.6k of income against $19.7k, drifting with
-// whatever else the machine was doing. Nothing downstream could be compared
-// before and after a change, because the baseline moved on its own.
+// replay priced the opponent's eco off how fast the machine could decode PNGs:
+// the same binary over the same corpus produced a 4.8s tick on one run and 5.0s
+// on the next. Nothing downstream could be compared before and after a change,
+// because the baseline moved on its own.
 
 import Foundation
 
@@ -133,10 +129,8 @@ struct OpponentBooks {
     /// moment of the worst breach. The gap against `buildCount` is roughly how
     /// many phantom sites the detector is carrying.
     var maxAffordableSites: Int = 0
-    /// Sites priced from the learned sprite library, versus sites counted at a
-    /// fallback estimate. The second number is how much of the tower figure is
-    /// still guesswork.
-    var towerSitesPriced: Int = 0
+    /// Sites counted at a fallback estimate rather than a learned price — how
+    /// much of the tower figure is still guesswork.
     var towerSitesUnpriced: Int = 0
     var sendsDetected: Int = 0
     var lowConfidenceSends: Int = 0
@@ -145,9 +139,7 @@ struct OpponentBooks {
     var totalGenerated: Double { ecoIncome + popIncome }
 
     /// What they actually have, best estimate. Tower spend is the estimated
-    /// term, so this is softer than the ceiling below it — but it is now bounded
-    /// by it rather than clamped against it, so this can no longer be driven to
-    /// zero by an impossible tower total.
+    /// term, so this is softer than the ceiling below it.
     var cash: Double { max(0, totalGenerated - sendSpend - towerSpend) }
 
     /// What they could have if they had built nothing. A hard ceiling: income
@@ -168,8 +160,8 @@ final class IncomeModel {
     let calibrator = EcoCalibrator()
 
     private(set) var books = OpponentBooks()
-    private(set) var baseCash: Int?
-    private(set) var baseEco: Double?
+    private var baseCash: Int?
+    private var baseEco: Double?
 
     /// Recorded seconds, off `Frame.time`.
     private var lastTickAt: Double?
@@ -273,25 +265,21 @@ final class IncomeModel {
     /// Take the census's valuation of their board, bounded by what they could
     /// possibly have spent.
     ///
-    /// This SETS rather than adds, which is the whole reason the census exists.
-    /// The previous design charged each detected build onto a running total, so
-    /// a false positive was permanent and error only ever grew. A valuation is
-    /// recomputed from the sites currently standing, so a bad reading costs a
-    /// few seconds and then corrects itself — and a sold tower leaves the total
-    /// instead of being charged again as a purchase.
+    /// This SETS rather than adds, which is the whole reason the census exists:
+    /// the total is a pure function of the sites currently standing, so a bad
+    /// reading costs a few seconds and then corrects itself, and a sold tower
+    /// leaves the total instead of being charged again as a purchase.
     ///
-    /// The bound is unchanged in spirit: they cannot have paid for a board worth
-    /// more than everything they have earned less what they spent on sends. With
-    /// a set-valued total it can be applied on every cycle rather than per
-    /// event, and clipping that persists is now a statement that the census is
-    /// over-reading rather than a one-off.
+    /// The bound: they cannot have paid for a board worth more than everything
+    /// they have earned less what they spent on sends. Applied on every cycle,
+    /// so clipping that persists says the census is over-reading rather than
+    /// that they happened to be broke for a moment.
     func noteTowerValuation(_ v: BoardValuation) {
         guard isSeeded else { return }
         let asked = Double(v.total)
         books.towerSpendRaw = asked
         books.towerSpend = min(asked, books.cashCeiling)
         books.buildCount = v.sites
-        books.towerSitesPriced = v.pricedSites
         books.towerSitesUnpriced = v.unpricedSites
         if books.towerSpend < asked - 0.5 { books.towerClips += 1 }
 

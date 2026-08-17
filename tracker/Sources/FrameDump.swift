@@ -64,9 +64,7 @@ final class FrameDump {
         self.session = f.string(from: Date())
     }
 
-    var isOff: Bool { policy == .off }
     var armsImmediately: Bool { policy == .always }
-    var location: String { dir?.path ?? "(nothing written)" }
 
     /// Begin saving. `note` is written alongside the frames so the dump explains
     /// itself months later without this conversation.

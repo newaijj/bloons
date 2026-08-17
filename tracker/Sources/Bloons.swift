@@ -9,7 +9,6 @@
 // widen the cash band without touching the eco figure.
 
 import Foundation
-import AppKit
 
 enum BloonType: String, CaseIterable, Codable {
     case red, blue, green, yellow, pink
@@ -69,18 +68,6 @@ enum BloonType: String, CaseIterable, Codable {
     }
 
     var display: String { rawValue.capitalized }
-
-    var swatch: NSColor {
-        guard let h = hue else {
-            switch self {
-            case .white: return .white
-            case .black: return NSColor(white: 0.15, alpha: 1)
-            case .lead:  return NSColor(white: 0.45, alpha: 1)
-            default:     return NSColor(white: 0.6, alpha: 1)
-            }
-        }
-        return NSColor(hue: CGFloat(h.center / 360.0), saturation: 0.85, brightness: 0.9, alpha: 1)
-    }
 }
 
 /// A pixel reduced to hue/saturation/brightness, which is all the classifier needs.

@@ -36,42 +36,12 @@
 import Foundation
 
 enum PriceTable {
-    /// Base cost of every tower in the game, cheapest first.
-    static let baseCosts: [String: Int] = [
-        "Glue Gunner": 100,
-        "Dart Monkey": 200,
-        "Tack Shooter": 280,
-        "Sniper Monkey": 300,
-        "Wizard Monkey": 300,
-        "Boomerang Monkey": 325,
-        "Monkey Sub": 325,
-        "Ninja Monkey": 350,
-        "Engineer Monkey": 400,
-        "Druid": 425,
-        "Ice Monkey": 450,
-        "Monkey Buccaneer": 500,
-        "Bomb Shooter": 525,
-        "Alchemist": 550,
-        "Spike Factory": 600,
-        "Mortar Monkey": 700,
-        "Monkey Ace": 750,
-        "Dartling Gunner": 800,
-        "Heli Pilot": 800,
-        "Banana Farm": 1000,
-        "Monkey Village": 1000,
-        "Super Monkey": 2000,
-    ]
-
     /// Cheapest tower at LIST price. Not a bound — see `minPaidCost`.
     static let minTowerCost = 100
-    /// Deepest discount a purchase can carry: 20%, from stacked village
-    /// upgrades. Quoted from the game's own upgrade text, not inferred.
-    static let maxDiscount = 0.20
-    /// Least real money a site can represent, discount included. THIS is the
-    /// floor to test against: below it, no board could have produced the number.
+    /// Least real money a site can represent, 20% off the cheapest tower for
+    /// stacked village discounts. THIS is the floor to test against: below it,
+    /// no board could have produced the number.
     static let minPaidCost = 80
-    /// Dearest tower before any upgrade.
-    static let maxTowerCost = 2000
     /// Median base cost, used as the prior for a site whose appearance has never
     /// been priced. Flat, because tier is not observable — see TowerWatcher.
     static let medianTowerCost = 475

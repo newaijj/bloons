@@ -176,6 +176,7 @@ permission for whatever launches it.
 | `data/btd6_derived_rounds.json` | round table, all 40 rounds |
 | `data/btdb2_costs.json` | published prices, read from the game — source of record |
 | `tools/gen_price_table.py` | regenerates `tracker/Sources/PriceTable.swift` from it |
+| `docs/tower-pricing-handoff.md` | how opponent pricing works, what it measures at, and what to build next |
 
 ## The round table
 

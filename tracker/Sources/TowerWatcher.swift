@@ -25,7 +25,6 @@ struct BoardValuation {
     var unpricedSites = 0
 
     var total: Int { boardValue + sunkFromSells }
-    var pricedShare: Double { sites > 0 ? Double(pricedSites) / Double(sites) : 0 }
 }
 
 final class TowerWatcher {

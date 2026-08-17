@@ -66,9 +66,6 @@ final class BoardWatcher {
     private let plate: PlateCensus
     private var region: HUDRegion
 
-    /// Real measured sprite extent at 2560px wide. Kept because TowerWatcher
-    /// scales its unpriced fallback cost by it.
-    static let spriteDiameterAt2560 = 150.0
     /// Sentinel for "this site has aged in". Confirmation is decided by AGE, not
     /// by how many censuses happened to see the site — see `minAgeSeconds`.
     static let confirmationsNeeded = 3

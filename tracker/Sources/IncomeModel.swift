@@ -305,12 +305,4 @@ final class IncomeModel {
             books.maxAffordableSites = Int(books.cashCeiling) / PriceTable.minPaidCost
         }
     }
-
-    /// Whether they can cover a price, on the best estimate of what they hold.
-    func canAfford(_ price: Int) -> Bool { books.cash >= Double(price) }
-
-    /// Whether they could conceivably cover it, ignoring everything we believe
-    /// they built. The other end of the interval, and the safe one to defend
-    /// against: tower spend is estimated, so `canAfford` can be wrong low.
-    func couldPossiblyAfford(_ price: Int) -> Bool { books.cashCeiling >= Double(price) }
 }
